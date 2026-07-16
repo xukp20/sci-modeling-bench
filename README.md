@@ -24,6 +24,16 @@ python -m pip install \
   "git+https://github.com/xukp20/sci-modeling-bench.git@v0.1.0"
 ```
 
+The unreleased Task API is available from the current development branch:
+
+```bash
+python -m pip install \
+  "git+https://github.com/xukp20/sci-modeling-bench.git@main"
+```
+
+Pin a commit instead of `main` when a reproducible development installation is
+required.
+
 ## Scope
 
 SciModelingBench provides:
@@ -40,22 +50,25 @@ agent workflows, process isolation, or an evaluation harness.
 
 ## Minimal TFBind8 Example
 
-The first integration exposes the canonical TFBind8 `SIX6_REF_R1` landscape,
-an exact black-box Objective, and the Design-Bench bottom-50% offline-data
-Protocol:
+The development version provides an end-to-end Task for the canonical TFBind8
+`SIX6_REF_R1` landscape. It combines the Design-Bench bottom-50% offline-data
+Protocol, exact Objective, submission contract, and top-1 metric:
 
 ```python
 from sci_modeling_bench.suites.design_bench import (
-    TFBind8Dataset,
-    TFBind8DesignBenchProtocol,
-    TFBind8ExactObjective,
+    TFBind8BlackBoxOptimizationTask,
 )
 
-dataset = TFBind8Dataset.from_hub(
+task = TFBind8BlackBoxOptimizationTask.from_hub(
     revision="2ee2856f4255bb6a64c11b6c2660a6f41418e654"
 )
-offline_data = TFBind8DesignBenchProtocol().build_input(dataset)
-score = TFBind8ExactObjective(dataset).evaluate({"sequence": "AACCGGTT"})
+offline_data = task.build_input()
+
+submission = [{"sequence": "AACCGGTT"} for _ in range(128)]
+evaluation = task.evaluate(submission)
+
+print(evaluation.score)
+print(evaluation.valid_candidates, evaluation.invalid_candidates)
 ```
 
 The TFBind8 observations are downloaded from the public SciModelingBench

@@ -15,23 +15,23 @@ is added only by `ObjectiveBackedTask` specializations.
 flowchart LR
     Repository["Pinned Hugging Face Dataset repository"] --> Dataset
     Dataset --> Protocol
-    Protocol --> Visible["Agent-visible input"]
-    Visible --> Agent["External agent"]
-    Agent --> Candidate["Candidate"]
-    Candidate --> Task
-    Task --> Objective
     Dataset --> Objective
     Dataset --> Task
     Protocol --> Task
-    Objective --> Targets["Target values"]
-    Harness["External harness"] -. controls interaction .-> Agent
-    Harness -. invokes .-> Protocol
-    Harness -. invokes .-> Objective
+    Objective -. "optional resource" .-> Task
+    Harness["External harness"] -. "calls build_input / evaluate" .-> Task
+    Task --> Visible["Agent-visible input"]
+    Visible --> Agent["External agent"]
+    Agent --> Submission
+    Submission --> Task
+    Task --> Evaluation["Typed evaluation"]
+    Evaluation --> Harness
+    Harness -. "controls interaction" .-> Agent
 ```
 
-The trusted side owns the complete `Dataset`, the `Protocol`, and the
-`Objective`. The agent should receive only the object returned by
-`Protocol.build_input()` and the feedback allowed by the external harness.
+The trusted side owns the `Task` and its complete `Dataset`, `Protocol`, and
+optional `Objective`. The agent should receive only the object returned by
+`Task.build_input()` and the feedback allowed by the external harness.
 
 ## Core Concepts
 
@@ -43,8 +43,31 @@ The trusted side owns the complete `Dataset`, the `Protocol`, and the
 | `Task` | Bind a Dataset and Protocol to a typed submission contract and evaluation result | Agent execution, isolation, query budgets, or a universal Objective assumption |
 | External harness | Run the agent and enforce interaction policy, budgets, isolation, and Task-result disclosure | Not provided by the package |
 
-See the [Dataset](../api/dataset.md), [Objective](../api/objective.md), and
-[Protocol](../api/protocol.md) API pages for the implemented contracts.
+See the [Dataset](../api/dataset.md), [Objective](../api/objective.md),
+[Protocol](../api/protocol.md), and [Task](../api/task.md) API pages for the
+implemented contracts.
+
+## Why Task Is a Separate Layer
+
+Dataset, Protocol, and Objective are reusable resources, but none of them alone
+defines a complete benchmark problem. Dataset owns scientific observations and
+validity rules. Protocol owns what information is exposed. Objective, when
+needed, owns a trusted candidate-to-target mapping. The Task is the first layer
+that defines what an Agent must submit and how that submission becomes benchmark
+metrics.
+
+Keeping Task separate prevents three responsibilities from being mixed:
+
+- changing an Agent-visible data view does not redefine the Dataset;
+- calculating a benchmark metric does not become part of Objective lookup;
+- query budgets, iterative feedback, and process isolation do not become part
+  of a static benchmark definition.
+
+The base `Task` therefore requires only a Dataset and Protocol. An
+`ObjectiveBackedTask` adds an Objective for problem types that need trusted
+candidate-to-target queries. This leaves room for Tasks whose submissions are
+predictions or other artifacts evaluated directly against trusted Dataset data,
+without pretending every scientific problem is black-box optimization.
 
 ## Dataset Terms
 
@@ -77,7 +100,7 @@ Published data and manifests are immutable inputs from the framework's point of
 view. Protocols return ordinary data objects without mutating the Dataset, and
 Objectives validate candidates against the Dataset before evaluation.
 
-## Black-Box Optimization in the First Release
+## First Supported Task: Black-Box Optimization
 
 The first supported setting is offline black-box optimization:
 

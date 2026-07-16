@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datasets import Dataset as HFDataset
+from datasets import Features
 
 from sci_modeling_bench.dataset.schema import FieldSpec
 from sci_modeling_bench.dataset.validation import (
@@ -59,3 +60,24 @@ def test_hugging_face_sequence_features_are_validated_without_crashing() -> None
     assert valid.valid
     assert not invalid.valid
     assert invalid.violations[0].code == "feature_mismatch"
+
+
+def test_arrow_schema_rejects_values_accepted_by_permissive_hf_encoding(
+    monkeypatch,
+) -> None:
+    features = HFDataset.from_dict({"x": [[1, 2]]}).features
+    field = FieldSpec(name="x", description="Integer vector.")
+
+    def permissive_encode(self, example):
+        return {"x": list(example["x"])}
+
+    monkeypatch.setattr(Features, "encode_example", permissive_encode)
+
+    report = validate_fields(
+        {"x": "not-a-list"},
+        (field,),
+        features=features,
+    )
+
+    assert not report.valid
+    assert report.violations[0].code == "feature_mismatch"

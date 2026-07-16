@@ -8,6 +8,7 @@ from numbers import Real
 from typing import Any, Literal
 
 from datasets import Features
+from pyarrow import Table
 from pydantic import BaseModel, ConfigDict, computed_field
 
 from sci_modeling_bench.dataset.schema import (
@@ -145,9 +146,9 @@ def validate_fields(
             continue
         if features is not None and field.name in features:
             try:
-                Features({field.name: features[field.name]}).encode_example(
-                    {field.name: value}
-                )
+                field_features = Features({field.name: features[field.name]})
+                encoded = field_features.encode_example({field.name: value})
+                Table.from_pylist([encoded], schema=field_features.arrow_schema)
             except Exception as exc:
                 violations.append(
                     Violation(

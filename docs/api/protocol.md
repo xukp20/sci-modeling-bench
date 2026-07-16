@@ -92,9 +92,9 @@ agent process. The external harness must ensure the agent cannot access the
 complete Dataset, hidden target columns, Objective internals, credentials, or
 cached repository artifacts.
 
-The harness is also responsible for query budgets, feedback timing, state,
-submissions, and metrics. These policies are not Protocol configuration in the
-first release.
+The harness remains responsible for query budgets, feedback timing, state, and
+deciding which Task evaluation fields are exposed to the Agent. Submission and
+metric semantics belong to a [Task](task.md), not Protocol configuration.
 
 ## Protocols Are Not Dataset Splits
 

@@ -5,6 +5,18 @@ All notable changes to SciModelingBench are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Generic `Task`, `ObjectiveBackedTask`, and structured submission-evaluation
+  contracts without requiring every Task to use an Objective.
+- Design-Bench-compatible black-box optimization evaluation for fixed
+  128-candidate submissions, with separate submission and candidate validation,
+  per-candidate diagnostics, and top-1 normalized scoring.
+- Default `TFBind8BlackBoxOptimizationTask` composition of the canonical
+  Dataset, bottom-50% Protocol, and exact Objective.
+
 ## [0.1.0] - 2026-07-16
 
 ### Added

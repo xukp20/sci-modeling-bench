@@ -6,43 +6,41 @@ SciModelingBench. It combines:
 - `TFBind8Dataset`, a canonical and validated DNA 8-mer binding landscape;
 - `TFBind8DesignBenchProtocol`, a deterministic offline-data view compatible
   with the Design-Bench TFBind8-Exact setting at the candidate-set level;
-- `TFBind8ExactObjective`, a trusted exact lookup for candidate evaluation.
+- `TFBind8ExactObjective`, a trusted exact lookup for candidate evaluation;
+- `TFBind8BlackBoxOptimizationTask`, the default 128-candidate, top-1
+  evaluation contract.
 
-This release provides the data, visibility, and evaluation primitives. It does
-not provide a Task object, optimization agent, benchmark runner, query-budget
-enforcement, submission format, or metrics.
+The package does not provide an optimization agent, benchmark runner,
+query-budget enforcement, or process isolation.
 
 ## End-to-End Use
 
 ```python
 from sci_modeling_bench.suites.design_bench import (
-    TFBind8Dataset,
-    TFBind8DesignBenchProtocol,
-    TFBind8ExactObjective,
+    TFBind8BlackBoxOptimizationTask,
 )
 
 REVISION = "2ee2856f4255bb6a64c11b6c2660a6f41418e654"
 
-# Trusted benchmark state
-dataset = TFBind8Dataset.from_hub(revision=REVISION)
-protocol = TFBind8DesignBenchProtocol()
-objective = TFBind8ExactObjective(dataset)
+task = TFBind8BlackBoxOptimizationTask.from_hub(revision=REVISION)
 
 # The external agent receives only this object.
-offline_data = protocol.build_input(dataset)
+offline_data = task.build_input()
 
-# A candidate returned to the trusted harness is evaluated exactly.
-candidate = {"sequence": "AACCGGTT"}
-scores = objective.evaluate(candidate)
-# {"e_score": ..., "normalized_e_score": ...}
+# The final submission must contain exactly 128 candidates.
+submission = [{"sequence": "AACCGGTT"} for _ in range(128)]
+evaluation = task.evaluate(submission)
+
+print(evaluation.score)
+print(evaluation.valid_candidates, evaluation.invalid_candidates)
 ```
 
-In a black-box run, keep `dataset` and `objective` on the trusted side. The
-complete TFBind8 table is publicly available, so this integration is a
-reproducible reference task rather than a secrecy- or contamination-resistant
-benchmark. A harness that wants to simulate hidden evaluation must isolate the
-agent from the full Hugging Face cache and external network access, and must
-enforce its own query budget or feedback policy.
+In a black-box run, keep the Task and its Dataset and Objective on the trusted
+side. The complete TFBind8 table is publicly available, so this integration is
+a reproducible reference task rather than a secrecy- or
+contamination-resistant benchmark. A harness that wants to simulate hidden
+evaluation must isolate the agent from the full Hugging Face cache and external
+network access, and must enforce its own query budget or feedback policy.
 
 See [Architecture and core concepts](../../architecture/core-concepts.md) for
 the framework-wide trust model.
@@ -129,6 +127,37 @@ remain external-harness decisions.
 
 See the [Objective API](../../api/objective.md) for common batch and error
 semantics.
+
+## Default Task
+
+`TFBind8BlackBoxOptimizationTask` combines the default Dataset, Protocol, and
+exact Objective. It follows the original Design-Bench reporting convention:
+
+- a submission contains exactly 128 candidates;
+- every legal candidate is evaluated by `normalized_e_score`;
+- the primary metric is `top_1_normalized_e_score`, the maximum legal score;
+- invalid candidates occupy submission slots but have no fabricated Objective
+  output;
+- an all-invalid or wrong-size submission receives the normalized floor `0.0`.
+
+Submission-level findings, such as `candidate_count_mismatch`, are represented
+by `SubmissionValidationReport`. Each candidate has an independent
+`CandidateValidationReport` with Dataset-derived findings such as
+`invalid_alphabet_symbol`.
+
+```python
+result = task.evaluate(submission)
+
+result.submission_valid
+result.score
+result.best_candidate_index
+result.candidates[0].validation
+result.candidates[0].objective_output
+```
+
+The complete result is intended for the trusted harness. The harness decides
+whether the Agent sees only the aggregate metric and invalid count or the full
+per-candidate outputs. See the [Task API](../../api/task.md).
 
 ## Offline-Data Protocol
 

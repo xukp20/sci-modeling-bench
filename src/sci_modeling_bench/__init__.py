@@ -28,9 +28,17 @@ from sci_modeling_bench.exceptions import (
     ProtocolError,
     SchemaMismatchError,
     SciModelingBenchError,
+    TaskError,
 )
 from sci_modeling_bench.objective import Objective
 from sci_modeling_bench.protocol import Protocol
+from sci_modeling_bench.task import (
+    ObjectiveBackedTask,
+    SubmissionEvaluation,
+    SubmissionValidationReport,
+    SubmissionViolation,
+    Task,
+)
 
 __all__ = [
     "AllowedValuesConstraint",
@@ -50,6 +58,7 @@ __all__ = [
     "ManifestError",
     "NumericRangeConstraint",
     "Objective",
+    "ObjectiveBackedTask",
     "ObjectiveError",
     "ObjectiveInputError",
     "ObjectiveLookupError",
@@ -58,6 +67,11 @@ __all__ = [
     "ProtocolError",
     "SchemaMismatchError",
     "SciModelingBenchError",
+    "SubmissionEvaluation",
+    "SubmissionValidationReport",
+    "SubmissionViolation",
+    "Task",
+    "TaskError",
     "ValidationReport",
     "Violation",
 ]

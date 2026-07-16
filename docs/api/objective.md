@@ -114,8 +114,9 @@ than after an expensive evaluation begins.
 
 An Objective does not decide which observations an agent sees, enforce query
 budgets, manage iterative feedback, parse submissions, or calculate benchmark
-metrics. Agent visibility belongs to a [Protocol](protocol.md); interaction and
-scoring policy belong to an external harness until a Task API is implemented.
+metrics. Agent visibility belongs to a [Protocol](protocol.md), submission and
+metric semantics belong to a [Task](task.md), and interaction policy belongs to
+an external harness.
 
 See [TFBind8](../suites/design-bench/tfbind8.md) for the first exact black-box
 Objective.

@@ -43,3 +43,7 @@ class ObjectiveOutputError(ObjectiveError):
 
 class ProtocolError(SciModelingBenchError):
     """Raised when a Protocol cannot build its declared Agent input."""
+
+
+class TaskError(SciModelingBenchError):
+    """Raised when a Task definition or trusted evaluation is inconsistent."""

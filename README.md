@@ -4,7 +4,8 @@ SciModelingBench is a Python framework for reproducible scientific modeling
 and design benchmarks. Version 0.1.0 provides the first experimental package
 surface for loading versioned observations, validating scientific schemas,
 constructing agent-visible inputs, and evaluating candidates against trusted
-objectives.
+objectives. The current development branch additionally provides the first
+typed Task and submission-evaluation contracts.
 
 ## Installation
 
@@ -31,10 +32,11 @@ SciModelingBench provides:
 - semantic manifests, schemas, provenance metadata, and structured validation;
 - trusted Objectives for candidate-to-target evaluation;
 - Protocols that construct the information exposed to an optimization agent;
+- Tasks that bind Agent input to typed submission and metric semantics;
 - optional, lazily loaded domain-knowledge resources.
 
-The package does not yet define Tasks, submission formats, metrics, query
-budgets, agent workflows, or evaluation harnesses.
+The package does not define a universal submission format, query budgets,
+agent workflows, process isolation, or an evaluation harness.
 
 ## Minimal TFBind8 Example
 
@@ -67,6 +69,8 @@ Hugging Face organization and are not bundled in the Python wheel.
   preserving batch order and repeated candidates.
 - **Protocol** derives the data or context visible to an agent without
   modifying the underlying Dataset.
+- **Task** defines one complete submission contract and its evaluation metrics;
+  only Objective-backed Task subclasses require an Objective.
 - **Knowledge** provides read-only explanatory resources pinned to the same
   dataset revision.
 
@@ -85,6 +89,7 @@ builders.
 - [Dataset API](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/dataset.md)
 - [Objective API](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/objective.md)
 - [Protocol API](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/protocol.md)
+- [Task API](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/task.md)
 - [TFBind8 integration](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/tfbind8.md)
 - [Changelog](https://github.com/xukp20/sci-modeling-bench/blob/main/CHANGELOG.md)
 
@@ -92,5 +97,7 @@ builders.
 
 Version 0.1.0 is the initial experimental release. Dataset, Objective, and
 Protocol interfaces are implemented but may change as additional scientific
-benchmarks are integrated. The TFBind8 code path has been validated against
-the pinned public Hugging Face artifact and the legacy Design-Bench arrays.
+benchmarks are integrated. The Task API is currently unreleased development
+work targeting version 0.2.0 on `main`. The TFBind8 code path has been validated
+against the pinned public Hugging Face artifact and the legacy Design-Bench
+arrays.

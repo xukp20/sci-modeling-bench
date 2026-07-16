@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sci-modeling-bench"
+version = "0.1.0"
+description = "An observation-grounded benchmark framework for scientific modeling and design."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  { name = "SciModelingBench contributors" },
+]
+keywords = [
+  "agent",
+  "benchmark",
+  "black-box-optimization",
+  "scientific-machine-learning",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "datasets>=3.1",
+  "huggingface-hub>=0.26",
+  "numpy>=1.26",
+  "pydantic>=2.10",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2",
+  "pytest>=8",
+  "twine>=5.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/xukp20/sci-modeling-bench"
+Documentation = "https://github.com/xukp20/sci-modeling-bench/tree/main/docs"
+Repository = "https://github.com/xukp20/sci-modeling-bench.git"
+Issues = "https://github.com/xukp20/sci-modeling-bench/issues"
+Changelog = "https://github.com/xukp20/sci-modeling-bench/blob/main/CHANGELOG.md"
+
+[project.scripts]
+smb-build-tfbind8 = "sci_modeling_bench.suites.design_bench.tfbind8.build:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sci_modeling_bench = ["py.typed"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+  "integration: tests that require external data artifacts",
+]

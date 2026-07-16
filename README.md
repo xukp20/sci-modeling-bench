@@ -1,30 +1,72 @@
-# SciModelingBench
+<p align="center">
+  <img
+    src="https://raw.githubusercontent.com/xukp20/sci-modeling-bench/main/assets/sci-modeling-bench-logo.png"
+    alt="SciModelingBench logo"
+    width="190"
+  >
+</p>
 
-SciModelingBench is a Python framework for reproducible scientific modeling
-and design benchmarks. Version 0.1.0 provides the first experimental package
-surface for loading versioned observations, validating scientific schemas,
-constructing agent-visible inputs, and evaluating candidates against trusted
-objectives. The current development branch additionally provides the first
-typed Task and submission-evaluation contracts.
+<h1 align="center">SciModelingBench</h1>
+
+<p align="center">
+  <strong>Observation-grounded benchmarks for scientific modeling and design agents.</strong>
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/sci-modeling-bench/">
+    <img alt="PyPI version" src="https://img.shields.io/pypi/v/sci-modeling-bench">
+  </a>
+  <a href="https://pypi.org/project/sci-modeling-bench/">
+    <img alt="Python versions" src="https://img.shields.io/pypi/pyversions/sci-modeling-bench">
+  </a>
+  <a href="https://pypi.org/project/sci-modeling-bench/">
+    <img alt="Development status" src="https://img.shields.io/pypi/status/sci-modeling-bench">
+  </a>
+  <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/LICENSE">
+    <img alt="License" src="https://img.shields.io/pypi/l/sci-modeling-bench">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/xukp20/sci-modeling-bench/tree/main/docs">Documentation</a>
+  &middot;
+  <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/docs/architecture/core-concepts.md">Architecture</a>
+  &middot;
+  <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/README.md">API</a>
+  &middot;
+  <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/tfbind8.md">TFBind8</a>
+  &middot;
+  <a href="https://huggingface.co/datasets/sci-modeling-bench/design-bench">Dataset Hub</a>
+</p>
+
+SciModelingBench separates versioned scientific observations, Agent-visible
+inputs, trusted target functions, and benchmark evaluation into explicit,
+reusable interfaces. The stable `0.1.0` release provides Dataset, Objective,
+and Protocol primitives. The current development branch adds typed Task and
+submission-evaluation contracts for the upcoming `0.2.0` release.
 
 ## Installation
 
 SciModelingBench requires Python 3.10 or later.
 
-From PyPI:
+### Stable Release
+
+Install the latest published version from PyPI:
 
 ```bash
 python -m pip install "sci-modeling-bench==0.1.0"
 ```
 
-From the GitHub v0.1.0 source tag:
+The same release can be installed from its Git tag:
 
 ```bash
 python -m pip install \
   "git+https://github.com/xukp20/sci-modeling-bench.git@v0.1.0"
 ```
 
-The unreleased Task API is available from the current development branch:
+### Development Version
+
+Install the unreleased Task API from the current development branch:
 
 ```bash
 python -m pip install \
@@ -34,7 +76,7 @@ python -m pip install \
 Pin a commit instead of `main` when a reproducible development installation is
 required.
 
-## Scope
+## What It Provides
 
 SciModelingBench provides:
 
@@ -48,7 +90,7 @@ SciModelingBench provides:
 The package does not define a universal submission format, query budgets,
 agent workflows, process isolation, or an evaluation harness.
 
-## Minimal TFBind8 Example
+## Quick Start: TFBind8
 
 The development version provides an end-to-end Task for the canonical TFBind8
 `SIX6_REF_R1` landscape. It combines the Design-Bench bottom-50% offline-data

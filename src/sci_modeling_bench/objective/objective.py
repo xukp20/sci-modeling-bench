@@ -18,7 +18,7 @@ ObjectiveOutput: TypeAlias = Mapping[str, Any]
 
 
 class Objective(ABC):
-    """A Dataset-bound, ordered batch mapping from candidates to targets."""
+    """A Dataset-bound, ordered batch mapping from candidates to outputs."""
 
     objective_id: str
 
@@ -30,13 +30,7 @@ class Objective(ABC):
         output_fields = self.output_fields
         if not output_fields or len(set(output_fields)) != len(output_fields):
             raise ObjectiveOutputError(
-                "output_fields must contain unique target field names"
-            )
-        dataset_targets = {field.name for field in dataset.schema.targets}
-        unknown = sorted(set(output_fields) - dataset_targets)
-        if unknown:
-            raise ObjectiveOutputError(
-                f"Objective outputs are not Dataset target fields: {unknown}"
+                "output_fields must contain unique semantic field names"
             )
 
     @property
@@ -46,7 +40,7 @@ class Objective(ABC):
     @property
     @abstractmethod
     def output_fields(self) -> tuple[str, ...]:
-        """Semantic target fields returned for every candidate."""
+        """Semantic fields returned for every candidate."""
 
     def evaluate(self, candidate: Candidate) -> dict[str, Any]:
         """Evaluate one candidate using the batch contract."""

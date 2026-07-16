@@ -40,6 +40,9 @@ class SubmissionEvaluation(BaseModel):
     task_id: str = Field(min_length=1)
     submission_validation: SubmissionValidationReport
     metrics: dict[str, float]
+    metric_directions: dict[str, Literal["maximize", "minimize"]] = Field(
+        default_factory=dict
+    )
     primary_metric: str = Field(min_length=1)
     metric_direction: Literal["maximize", "minimize"]
 

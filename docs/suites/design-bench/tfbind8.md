@@ -7,8 +7,8 @@ SciModelingBench. It combines:
 - `TFBind8DesignBenchProtocol`, a deterministic offline-data view compatible
   with the Design-Bench TFBind8-Exact setting at the candidate-set level;
 - `TFBind8ExactObjective`, a trusted exact lookup for candidate evaluation;
-- `TFBind8BlackBoxOptimizationTask`, the default 128-candidate, top-1
-  evaluation contract.
+- `TFBind8BlackBoxOptimizationTask`, the default ordered 128-candidate
+  evaluation contract with `best_k_mean` as its primary metric.
 
 The package does not provide an optimization agent, benchmark runner,
 query-budget enforcement, or process isolation.
@@ -27,8 +27,12 @@ task = TFBind8BlackBoxOptimizationTask.from_hub(revision=REVISION)
 # The external agent receives only this object.
 offline_data = task.build_input()
 
-# The final submission must contain exactly 128 candidates.
-submission = [{"sequence": "AACCGGTT"} for _ in range(128)]
+# The final submission must contain exactly 128 distinct candidates, ordered
+# from the Agent's highest to lowest predicted quality.
+submission = [
+    {"sequence": sequence}
+    for sequence in offline_data["sequence"][:128]
+]
 evaluation = task.evaluate(submission)
 
 print(evaluation.score)
@@ -88,14 +92,125 @@ over `A`, `C`, `G`, and `T`.
 | `e_score` | Target | `float64` | Published PBM enrichment statistic |
 | `normalized_e_score` | Target | `float32` | Condition-level min-max normalization used by Design-Bench |
 
-The raw E-score remains float64 so normalization can be reproduced from the
-published decimals. The normalized score is float32 for exact parity with the
-historical Design-Bench target array.
+The published, unnormalized E-score remains float64 so normalization can be
+reproduced from the published decimals. The normalized score is float32 for
+exact parity with the historical Design-Bench target array.
 
 `TFBind8Validator` checks the full canonical artifact for column order, 65,536
 unique sequences, complete `4^8` coverage, deterministic `A<C<G<T` order,
 finite scores, reverse-complement score agreement, and exact float32
 normalization.
+
+## Data Construction and Audit
+
+### Upstream and Design-Bench representations
+
+The pinned Barrera et al. archive contains a tab-separated
+`SIX6_REF_R1_8mers.txt` table with 32,896 rows. Each row supplies an 8-mer, its
+reverse complement, and one shared E-score, followed by the published `Median`
+and `Z-score` columns. The two sequence columns therefore enumerate the 32,896
+reverse-complement orbits of the complete DNA 8-mer space rather than 32,896
+unrelated observations.
+
+Here, "original E-score" means the published score before Design-Bench's
+min-max transform; it is still a derived PBM statistic, not raw probe intensity.
+The first release does not publish the source `Median` and `Z-score` fields
+because they are outside the historical TFBind8 optimization target.
+
+The historical Design-Bench processor encodes bases as `A=0`, `C=1`, `G=2`,
+and `T=3`, concatenates the two sequence columns, duplicates the shared target,
+and stores only a condition-level min-max-normalized float32 target. This
+produces 65,792 rows. The SciModelingBench builder reconstructs that historical
+representation for parity checks, but publishes a scientific string
+representation and retains the original E-score as well.
+
+The audit identified representation and weighting issues that need explicit
+handling:
+
+| Finding | Historical consequence | Release decision |
+|---|---|---|
+| A reverse-complement palindrome appears in both source sequence columns | 256 exact candidate/label rows are repeated after concatenation | Remove only these exact repeats |
+| Non-palindromic reverse complements share an assay score | Two different legal sequence strings have the same target | Retain both strings and verify score equality |
+| Legacy `x` uses integer tokens | Scientific meaning and alphabet order are external to the array | Publish uppercase DNA strings |
+| Legacy `y` contains only the normalized score | The published E-score scale cannot be recovered from `y` alone | Publish both unnormalized and normalized targets |
+| The source also contains `Median` and `Z-score` | These fields are not used by the Design-Bench objective | Exclude them from v1 and record the omission rather than treating them as unavailable |
+| Legacy row order follows source concatenation | Order is not a canonical identity for the complete space | Sort deterministically with `A<C<G<T` |
+
+No conflicting duplicate labels, malformed sequences, missing legal 8-mers,
+NaN targets, or infinite targets were found.
+
+### Source-to-release transformation
+
+The canonical builder:
+
+1. verifies the archive size, SHA-256, member size, CRC32, and table header;
+2. validates every sequence and reverse-complement relationship;
+3. expands both sequence columns with their shared E-score;
+4. removes the 256 exact repeats created by reverse-complement palindromes;
+5. retains non-palindromic reverse complements as separate candidates;
+6. verifies complete coverage of all `4^8` legal sequences;
+7. sorts sequences deterministically using `A<C<G<T`;
+8. min-max normalizes E-score over the condition and stores it as float32.
+
+The resulting Parquet has no duplicate sequences. When the pinned historical
+NPY files are supplied to the builder, the reconstructed pre-deduplication
+token and target arrays match Design-Bench element by element.
+
+### Measured data summary
+
+The following statistics describe the pinned `six6_ref_r1` release, not a
+sample:
+
+| Statistic | Value |
+|---|---:|
+| Source reverse-complement rows | 32,896 |
+| Expanded historical rows | 65,792 |
+| Canonical unique sequences | 65,536 |
+| Reverse-complement palindromes / removed repeats | 256 / 256 |
+| Distinct E-score values | 25,239 |
+| E-score minimum / maximum | `-0.47907` / `0.49105` |
+| E-score mean / standard deviation | `-0.0291607` / `0.1688974` |
+| E-score 25th / 50th / 75th percentiles | `-0.15174` / `-0.052895` / `0.0700525` |
+| Normalized-score median | `0.4393013` |
+| Canonical candidates exposed by the default bottom-50% Protocol | 32,768 |
+
+Tied targets are expected: every non-palindromic reverse-complement pair shares
+an E-score, and the published score precision introduces additional ties. The
+maximum E-score is shared by one reverse-complement pair. Candidate-level
+metrics and data splits should therefore not assume target values are unique.
+
+### Deliberately retained structure
+
+Release canonicalization corrects representation artifacts; it does not turn
+the observations into model-ready features. The release deliberately retains:
+
+- both members of every non-palindromic reverse-complement pair;
+- the measured target ties and published decimal precision;
+- both the published E-score and its monotonic Design-Bench normalization;
+- the complete legal 8-mer domain, without a stored train/validation/test split;
+- plain DNA strings rather than one-hot, k-mer, motif, or learned features.
+
+Other conditions and replicates in the upstream archive are also not aggregated
+into this split. They can be added later as separately identified splits rather
+than silently mixed with `SIX6_REF_R1`.
+
+Dataset-specific feature engineering, symmetry handling, split construction,
+target transforms, and search representations are method choices. They are not
+silently applied by `TFBind8Dataset`.
+
+## Documentation and Agent Visibility
+
+This page is package and benchmark-maintainer documentation. SciModelingBench
+does not inject it into a Task input. The default Agent-visible object returned
+by `task.build_input()` contains only `sequence` and `normalized_e_score` for
+the Protocol-selected offline observations. A runner may add an explicit task
+statement, but should not expose maintainer analysis or optional modeling notes
+unless that is part of the declared setting.
+
+For a controlled run, the external harness must also control repository,
+documentation, cache, and network access. The complete historical TFBind8
+landscape is already public, so this task remains a reproducible integration
+and workflow benchmark rather than a contamination-resistant hidden test.
 
 ## Exact Objective
 
@@ -131,25 +246,37 @@ semantics.
 ## Default Task
 
 `TFBind8BlackBoxOptimizationTask` combines the default Dataset, Protocol, and
-exact Objective. It follows the original Design-Bench reporting convention:
+exact Objective:
 
-- a submission contains exactly 128 candidates;
-- every legal candidate is evaluated by `normalized_e_score`;
-- the primary metric is `top_1_normalized_e_score`, the maximum legal score;
-- invalid candidates occupy submission slots but have no fabricated Objective
-  output;
-- an all-invalid or wrong-size submission receives the normalized floor `0.0`.
+- `submission_size` defaults to 128 and is configurable at construction time;
+- candidates are ordered from the Agent's highest to lowest predicted quality;
+- every candidate must be legal, present in the exact landscape, and unique;
+- every eligible submission receives the complete common candidate metric set;
+- the default primary metric is `best_k_mean`, with `K=min(5, submission_size)`;
+- relative metrics use all 65,536 exact scores as a `full_domain` reference.
 
 Submission-level findings, such as `candidate_count_mismatch`, are represented
 by `SubmissionValidationReport`. Each candidate has an independent
 `CandidateValidationReport` with Dataset-derived findings such as
-`invalid_alphabet_symbol`.
+`invalid_alphabet_symbol` or the Task-level `duplicate_candidate`. Invalid
+submissions retain diagnostics but do not receive official aggregate metrics.
 
 ```python
+task = TFBind8BlackBoxOptimizationTask.from_hub(
+    submission_size=128,
+    primary_metric="best_k_mean",
+)
+visible = task.build_input()
+submission = [
+    {"sequence": sequence}
+    for sequence in visible["sequence"][:128]
+]
 result = task.evaluate(submission)
 
 result.submission_valid
+result.evaluation_eligible
 result.score
+result.metrics
 result.best_candidate_index
 result.candidates[0].validation
 result.candidates[0].objective_output
@@ -158,6 +285,38 @@ result.candidates[0].objective_output
 The complete result is intended for the trusted harness. The harness decides
 whether the Agent sees only the aggregate metric and invalid count or the full
 per-candidate outputs. See the [Task API](../../api/task.md).
+
+See [Candidate submission metrics](../../metrics/candidate-submission-metrics.md)
+for the score, regret, enrichment, and ordered-ranking formulas. `best_score`
+retains Design-Bench's best-of-submission interpretation as a secondary metric.
+
+## Metric Choice and Modeling Notes
+
+The frozen metric audit used 50,000 uniformly sampled, without-replacement
+submissions of 128 sequences from the complete 65,536-sequence reference
+domain. The table reports the random mean and its 10th--90th percentile range;
+the oracle-rerank row uses the same random sets but orders each set by trusted
+score, so it diagnoses ordering rather than a usable method.
+
+| Audit submission | `best_score` | `best_k_mean` | `batch_mean` | `global_ndcg` | `reranking_ndcg` |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Random ordered | `0.9384` (`0.8871--0.9820`) | `0.8798` (`0.8357--0.9220`) | `0.4638` (`0.4443--0.4836`) | `0.4714` (`0.4492--0.4940`) | `0.8778` (`0.8571--0.8991`) |
+| Oracle-rerank of the same sets | `0.9384` | `0.8798` | `0.4638` | `0.5370` (`0.5154--0.5585`) | `1.0000` |
+
+Random `best_score` has median `0.9445` and reaches `0.9820` at the 90th
+percentile, so a single high-scoring sequence is too easily dominated by
+batch-size luck. `best_k_mean` with `K=5` still rewards discovery of several
+strong sequences without changing the Task into a requirement that all 128
+candidates be high scoring. It is therefore the default primary metric.
+`batch_mean`, enrichment, and NDCG remain useful secondary diagnostics.
+
+The release intentionally exposes strings, not a maintainer-selected feature
+matrix. Reasonable declared method choices include position-aware one-hot or
+k-mer features, motif and interaction terms, and local mutation searches.
+Reverse-complement score agreement is a useful scientific consistency check,
+but the two non-palindromic strings remain distinct legal candidates and must
+not occupy one submitted slot twice. These are modeling choices, not Dataset
+preprocessing or extra information supplied by the default Protocol.
 
 ## Offline-Data Protocol
 
@@ -187,7 +346,8 @@ maximum. Selection uses NumPy's linear percentile method, includes values equal
 to either threshold, and preserves canonical row order. No randomness or seed
 is involved.
 
-For example, a caller can expose the upper half of the raw E-score distribution:
+For example, a caller can expose the upper half of the unnormalized E-score
+distribution:
 
 ```python
 protocol = TFBind8DesignBenchProtocol(
@@ -216,23 +376,6 @@ double training weight. The canonical release also has exact element-wise
 parity with the complete historical Design-Bench `x` and `y` arrays before
 deduplication: zero mismatched elements and zero maximum absolute target
 difference.
-
-## Canonicalization
-
-The published source table contains 32,896 rows. Each row holds an 8-mer, its
-reverse complement, and their shared E-score. Concatenating both sequence
-columns yields 65,792 historical rows. The canonical builder:
-
-1. validates every sequence and reverse-complement pair;
-2. expands both sequence columns with their shared E-score;
-3. removes the 256 exact repeats created by reverse-complement palindromes;
-4. retains non-palindromic reverse complements as separate candidates;
-5. verifies complete coverage of all `4^8` legal sequences;
-6. sorts sequences deterministically using `A<C<G<T`;
-7. min-max normalizes E-score and stores the result as float32.
-
-The resulting Parquet has no duplicate sequences, conflicting labels, missing
-8-mers, NaN values, or infinite values.
 
 ## Provenance and Rebuilding
 

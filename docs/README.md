@@ -1,9 +1,8 @@
 # SciModelingBench Documentation
 
 SciModelingBench is an observation-grounded framework for scientific modeling
-and design benchmarks. Version 0.2.0 provides experimental `Dataset`,
-`Objective`, `Protocol`, and `Task` APIs plus an end-to-end black-box
-optimization integration for TFBind8.
+and design benchmarks. It provides experimental `Dataset`, `Objective`,
+`Protocol`, and `Task` APIs with end-to-end candidate optimization Tasks.
 
 ## Start Here
 
@@ -17,6 +16,16 @@ optimization integration for TFBind8.
   - [Task API](api/task.md)
 - [TFBind8](suites/design-bench/tfbind8.md) documents the first supported
   black-box optimization setting, its canonical data, and Design-Bench parity.
+- [TFBind10 Pho4](suites/design-bench/tfbind10-pho4.md) documents raw BET-seq
+  replicates, a count-grounded posterior Objective, and upper-pool batch
+  optimization.
+- [Superconductor](suites/design-bench/superconductor.md) documents measured
+  composition groups, lower-to-upper-tail modeling, and ordered pool ranking.
+- [CellDAG-NAS](suites/design-bench/cell-dag-nas.md) documents the canonical
+  NASBench-101 graph-search Dataset and duplicate-aware Task.
+- [Candidate submission metrics](metrics/candidate-submission-metrics.md)
+  defines the common score, regret, batch-quality, and ordered-ranking
+  vocabulary for black-box optimization and related candidate Tasks.
 
 ## Current Scope
 

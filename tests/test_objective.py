@@ -23,8 +23,7 @@ class ScoreObjective(Objective):
         candidates: tuple[Candidate, ...],
     ) -> Iterable[ObjectiveOutput]:
         return (
-            {"score": float(len(candidate["sequence"]))}
-            for candidate in candidates
+            {"score": float(len(candidate["sequence"]))} for candidate in candidates
         )
 
 
@@ -36,6 +35,23 @@ class MissingOutputObjective(ScoreObjective):
         candidates: tuple[Candidate, ...],
     ) -> Iterable[ObjectiveOutput]:
         return ({"wrong": 1.0} for _ in candidates)
+
+
+class DerivedOutputObjective(ScoreObjective):
+    objective_id = "test/derived-output-v1"
+
+    @property
+    def output_fields(self) -> tuple[str, ...]:
+        return ("derived_score",)
+
+    def _evaluate_batch(
+        self,
+        candidates: tuple[Candidate, ...],
+    ) -> Iterable[ObjectiveOutput]:
+        return (
+            {"derived_score": float(len(candidate["sequence"]))}
+            for candidate in candidates
+        )
 
 
 def make_dataset(fake_repository: Any) -> Dataset:
@@ -60,3 +76,9 @@ def test_objective_rejects_undeclared_output_fields(fake_repository) -> None:
 
     with pytest.raises(ObjectiveOutputError, match="expected"):
         objective.evaluate({"sequence": "AACCGGTT"})
+
+
+def test_objective_can_return_a_derived_non_dataset_field(fake_repository) -> None:
+    objective = DerivedOutputObjective(make_dataset(fake_repository))
+
+    assert objective.evaluate({"sequence": "AACCGGTT"}) == {"derived_score": 8.0}

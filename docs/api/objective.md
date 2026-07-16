@@ -4,8 +4,10 @@
 > only when concrete scientific benchmarks require it.
 
 An `Objective` is a trusted, Dataset-bound mapping from a valid candidate to one
-or more target values. It provides common candidate validation and ordered batch
-semantics while leaving scientific evaluation to a concrete implementation.
+or more semantic output values. Outputs may be stored Dataset targets, simulator
+results, or values derived from multiple observations. The base class provides
+common candidate validation and ordered batch semantics while leaving
+scientific evaluation to a concrete implementation.
 
 ## Using an Objective
 
@@ -42,12 +44,15 @@ Every concrete Objective defines:
 |---|---|
 | `objective_id` | Non-empty stable identifier for the evaluation behavior |
 | `dataset` | Dataset instance bound at construction |
-| `output_fields` | Non-empty tuple of unique Dataset target field names |
+| `output_fields` | Non-empty tuple of unique semantic output field names |
 | `evaluate(candidate)` | Validate and evaluate one candidate |
 | `evaluate_batch(candidates)` | Validate and evaluate an ordered candidate batch |
 
-Construction rejects an empty `objective_id`, duplicate or empty
-`output_fields`, and output fields not declared in `dataset.schema.targets`.
+Construction rejects an empty `objective_id` and duplicate or empty
+`output_fields`. An output does not have to be a physical Dataset target. This
+allows an Objective to compute, for example, one candidate-level posterior
+score from several raw replicate observations without publishing that score as
+offline data.
 
 Before scientific evaluation, `evaluate_batch()` calls
 `dataset.validate_inputs()` for every candidate. If a candidate is invalid, it
@@ -62,9 +67,9 @@ After evaluation, the base class verifies that:
 - every output has exactly the declared fields;
 - returned dictionaries follow `output_fields` order.
 
-The base class checks output structure, not target values. A concrete Objective
-is responsible for producing scientifically valid target values and may use
-`dataset.validate_targets()` when appropriate.
+The base class checks output structure, not output values. A concrete Objective
+is responsible for producing scientifically valid values and may use
+`dataset.validate_targets()` when the output is a persisted Dataset target.
 
 ## Implementing an Objective
 
@@ -92,10 +97,11 @@ class SequenceLengthObjective(Objective):
             yield {"score": float(len(candidate["sequence"]))}
 ```
 
-The bound Dataset must declare `score` as a target. `_evaluate_batch()` receives
-a fully materialized tuple whose candidates have passed Dataset input
-validation. It must yield one mapping per candidate without reordering or
-deduplicating the batch.
+`_evaluate_batch()` receives a fully materialized tuple whose candidates have
+passed Dataset input validation. It must yield one mapping per candidate
+without reordering or deduplicating the batch. A concrete Objective should
+document whether each output is observed, analytic, simulated, learned, or
+derived from several Dataset fields.
 
 Use a Dataset-specific constructor when an Objective requires a particular
 dataset ID or split. Fail such compatibility checks during construction rather
@@ -118,5 +124,6 @@ metrics. Agent visibility belongs to a [Protocol](protocol.md), submission and
 metric semantics belong to a [Task](task.md), and interaction policy belongs to
 an external harness.
 
-See [TFBind8](../suites/design-bench/tfbind8.md) for the first exact black-box
-Objective.
+See [TFBind8](../suites/design-bench/tfbind8.md) for an exact persisted-target
+lookup and [TFBind10 Pho4](../suites/design-bench/tfbind10-pho4.md) for a score
+derived from raw replicate count observations.

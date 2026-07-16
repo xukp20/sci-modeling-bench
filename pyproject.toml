@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-modeling-bench"
-version = "0.2.0"
+version = "0.3.0"
 description = "An observation-grounded benchmark framework for scientific modeling and design."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -41,6 +41,9 @@ dev = [
   "pytest>=8",
   "twine>=5.1",
 ]
+data-build = [
+  "protobuf>=4",
+]
 
 [project.urls]
 Homepage = "https://github.com/xukp20/sci-modeling-bench"
@@ -51,6 +54,9 @@ Changelog = "https://github.com/xukp20/sci-modeling-bench/blob/main/CHANGELOG.md
 
 [project.scripts]
 smb-build-tfbind8 = "sci_modeling_bench.suites.design_bench.tfbind8.build:main"
+smb-build-tfbind10-pho4 = "sci_modeling_bench.suites.design_bench.tfbind10_pho4.build:main"
+smb-build-cell-dag-nas = "sci_modeling_bench.suites.design_bench.cell_dag_nas.build:main"
+smb-build-superconductor = "sci_modeling_bench.suites.design_bench.superconductor.build:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

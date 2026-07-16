@@ -22,3 +22,44 @@ SciModelingBench publishes only the derived contiguous 8-mer landscape and
 does not assert that the project MIT license applies to those observations.
 The Hugging Face Dataset card records the source, citations, checksums,
 transformations, and applicable upstream terms.
+
+## BET-seq TFBind10 Pho4 Data
+
+The TFBind10 Pho4 integration derives its raw replicate table from the BET-seq
+processed data published by the Fordyce Lab:
+
+- Dataset: https://doi.org/10.6084/m9.figshare.5728467.v1
+- Source publication: Le et al. (2018), PNAS, doi:10.1073/pnas.1715888115
+- Analysis repository: https://github.com/FordyceLab/BET-seq
+- Referenced revision: `d73e583dc2c0d73539b804f41775d8cb3d42e633`
+- License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+The release selects only published Pho4 rows, preserves source replicate
+granularity and zero-count infinities, and records the archive, member, and
+generated Parquet checksums in its Hugging Face provenance report.
+
+## NASBench-101
+
+The CellDAG-NAS integration derives canonical graph identities and training
+records from NASBench-101 and preserves the Design-Bench 31-token aliases:
+
+- Project: https://github.com/google-research/nasbench
+- Referenced revision: `b94247037ee470418a3e56dcb83814e9be83f3a8`
+- Copyright: Copyright 2019 The Google Research Authors
+- License: Apache License 2.0
+
+The graph-invariant hashing procedure in CellDAG-NAS follows the Apache-2.0
+NASBench-101 `graph_util.hash_module` implementation.
+
+## UCI Superconductivity Data
+
+The Superconductor integration derives composition groups, measured targets,
+and published descriptor features from UCI dataset 464:
+
+- Dataset: https://archive.ics.uci.edu/dataset/464/superconductivty+data
+- Source publication: Hamidieh (2018), Computational Materials Science
+- License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+The Hugging Face manifest and provenance report record the source archive and
+member checksums, grouping transformation, retained observations, and artifact
+checksum.

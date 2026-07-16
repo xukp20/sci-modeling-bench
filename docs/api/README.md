@@ -11,5 +11,6 @@ The framework exposes four experimental interfaces:
 
 For how these interfaces fit together, read
 [Architecture and core concepts](../architecture/core-concepts.md). The
-[TFBind8 suite guide](../suites/design-bench/tfbind8.md) shows all four in one
-black-box optimization workflow.
+[TFBind8](../suites/design-bench/tfbind8.md) and
+[Superconductor](../suites/design-bench/superconductor.md) show all four in
+complete black-box optimization workflows.

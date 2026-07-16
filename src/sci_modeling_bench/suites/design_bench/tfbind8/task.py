@@ -23,9 +23,10 @@ from sci_modeling_bench.suites.design_bench.tfbind8.protocol import (
 class TFBind8BlackBoxOptimizationTask(
     DesignBenchBlackBoxOptimizationTask[HFDataset]
 ):
-    """Expose the offline TFBind8 data and score a 128-candidate submission."""
+    """Expose offline TFBind8 data and evaluate an ordered candidate batch."""
 
-    task_id = "design-bench/tfbind8-black-box-optimization-v1"
+    task_id = "design-bench/tfbind8-black-box-optimization-v2"
+    default_primary_metric = "best_k_mean"
 
     def __init__(
         self,
@@ -33,12 +34,20 @@ class TFBind8BlackBoxOptimizationTask(
         *,
         protocol: TFBind8DesignBenchProtocol | None = None,
         objective: TFBind8ExactObjective | None = None,
+        submission_size: int = 128,
+        primary_metric: str | None = None,
     ) -> None:
+        selected_objective = objective or TFBind8ExactObjective(dataset)
+        observations = dataset.load(selected_objective.split)
         super().__init__(
             dataset,
             protocol or TFBind8DesignBenchProtocol(),
-            objective or TFBind8ExactObjective(dataset),
+            selected_objective,
             score_field="normalized_e_score",
+            reference_scores=observations["normalized_e_score"],
+            reference_scope="full_domain",
+            submission_size=submission_size,
+            primary_metric=primary_metric,
         )
 
     @classmethod
@@ -49,6 +58,8 @@ class TFBind8BlackBoxOptimizationTask(
         revision: str | None = None,
         *,
         token: str | None = None,
+        submission_size: int = 128,
+        primary_metric: str | None = None,
     ) -> TFBind8BlackBoxOptimizationTask:
         """Construct the default Task from a Hugging Face Dataset revision."""
 
@@ -58,4 +69,8 @@ class TFBind8BlackBoxOptimizationTask(
             revision=revision,
             token=token,
         )
-        return cls(dataset)
+        return cls(
+            dataset,
+            submission_size=submission_size,
+            primary_metric=primary_metric,
+        )

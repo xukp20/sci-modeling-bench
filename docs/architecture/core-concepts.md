@@ -38,7 +38,7 @@ optional `Objective`. The agent should receive only the object returned by
 | Concept | Responsibility | Not responsible for |
 |---|---|---|
 | `Dataset` | Load a pinned observation set with identity, provenance, semantic field roles, validation, split metadata, and optional knowledge | Task-specific data selection, model preprocessing, candidate evaluation, metrics, or agent workflows |
-| `Objective` | Map a valid candidate to declared Dataset target fields on the trusted side | Agent-visible data, query budgets, submission handling, or ranking metrics |
+| `Objective` | Map a valid candidate to declared persisted or derived outputs on the trusted side | Agent-visible data, query budgets, submission handling, or ranking metrics |
 | `Protocol` | Construct the data or other information visible to an agent from a complete Dataset | Evaluating candidates, tracking interaction state, or enforcing a query budget |
 | `Task` | Bind a Dataset and Protocol to a typed submission contract and evaluation result | Agent execution, isolation, query budgets, or a universal Objective assumption |
 | External harness | Run the agent and enforce interaction policy, budgets, isolation, and Task-result disclosure | Not provided by the package |
@@ -107,7 +107,7 @@ The first supported setting is offline black-box optimization:
 1. A Protocol derives a limited offline observation set from the complete
    Dataset.
 2. An external agent uses that visible data to propose candidates.
-3. A trusted Objective returns target values for valid candidates.
+3. A trusted Objective returns declared persisted or derived values for valid candidates.
 4. A black-box optimization Task validates the complete submission and
    aggregates its declared metric.
 5. The external harness decides how interactions and Task results are exposed

@@ -1,9 +1,9 @@
 # SciModelingBench Documentation
 
 SciModelingBench is an observation-grounded framework for scientific modeling
-and design benchmarks. The current development branch provides experimental
-`Dataset`, `Objective`, `Protocol`, and `Task` APIs plus an end-to-end
-black-box optimization integration for TFBind8.
+and design benchmarks. Version 0.2.0 provides experimental `Dataset`,
+`Objective`, `Protocol`, and `Task` APIs plus an end-to-end black-box
+optimization integration for TFBind8.
 
 ## Start Here
 

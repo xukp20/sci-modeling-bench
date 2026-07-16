@@ -41,9 +41,8 @@
 
 SciModelingBench separates versioned scientific observations, Agent-visible
 inputs, trusted target functions, and benchmark evaluation into explicit,
-reusable interfaces. The stable `0.1.0` release provides Dataset, Objective,
-and Protocol primitives. The current development branch adds typed Task and
-submission-evaluation contracts for the upcoming `0.2.0` release.
+reusable interfaces. Version `0.2.0` provides experimental Dataset, Objective,
+Protocol, and Task APIs plus an end-to-end TFBind8 black-box optimization Task.
 
 ## Installation
 
@@ -54,27 +53,15 @@ SciModelingBench requires Python 3.10 or later.
 Install the latest published version from PyPI:
 
 ```bash
-python -m pip install "sci-modeling-bench==0.1.0"
+python -m pip install "sci-modeling-bench==0.2.0"
 ```
 
 The same release can be installed from its Git tag:
 
 ```bash
 python -m pip install \
-  "git+https://github.com/xukp20/sci-modeling-bench.git@v0.1.0"
+  "git+https://github.com/xukp20/sci-modeling-bench.git@v0.2.0"
 ```
-
-### Development Version
-
-Install the unreleased Task API from the current development branch:
-
-```bash
-python -m pip install \
-  "git+https://github.com/xukp20/sci-modeling-bench.git@main"
-```
-
-Pin a commit instead of `main` when a reproducible development installation is
-required.
 
 ## What It Provides
 
@@ -92,7 +79,7 @@ agent workflows, process isolation, or an evaluation harness.
 
 ## Quick Start: TFBind8
 
-The development version provides an end-to-end Task for the canonical TFBind8
+The package provides an end-to-end Task for the canonical TFBind8
 `SIX6_REF_R1` landscape. It combines the Design-Bench bottom-50% offline-data
 Protocol, exact Objective, submission contract, and top-1 metric:
 
@@ -150,9 +137,8 @@ builders.
 
 ## Release Status
 
-Version 0.1.0 is the initial experimental release. Dataset, Objective, and
-Protocol interfaces are implemented but may change as additional scientific
-benchmarks are integrated. The Task API is currently unreleased development
-work targeting version 0.2.0 on `main`. The TFBind8 code path has been validated
-against the pinned public Hugging Face artifact and the legacy Design-Bench
-arrays.
+Version 0.2.0 adds the experimental Task and submission-evaluation APIs while
+preserving the Dataset, Objective, and Protocol interfaces from 0.1.0. These
+interfaces may still change as additional scientific benchmarks are integrated.
+The TFBind8 code path has been validated against the pinned public Hugging Face
+artifact and the legacy Design-Bench arrays.

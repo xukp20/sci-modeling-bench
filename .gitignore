@@ -28,6 +28,7 @@ htmlcov/
 .DS_Store
 
 # Local development records
+AGENTS.md
 dev_docs/
 
 # Local datasets and generated artifacts
@@ -38,4 +39,3 @@ artifacts/
 .env
 .env.*
 !.env.example
-

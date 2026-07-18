@@ -23,22 +23,23 @@ action clipping                 [-1, 1]
 
 Every policy is evaluated by 500 independently seeded stochastic rollouts in
 the frozen Hopper-v5 recipe. Dataset artifacts are distributed separately from
-the Python package. Pin the Dataset repository revision once the
-`hopper_controller` config is published:
+the Python package. The default source is pinned to the published immutable
+Dataset revision:
 
 ```python
 from sci_modeling_bench.suites.design_bench import HopperControllerDataset
 
-dataset = HopperControllerDataset.from_hub(revision="<pinned revision>")
+dataset = HopperControllerDataset.from_hub()
 policies = dataset.load()
 
 print(len(policies))
 # 3200
 ```
 
-The initial 500-repeat staging release has been built and validated locally;
-its public Hub revision is pending. The implementation accepts an alternate
-`repo_id` and `revision` without changing Task semantics.
+The published revision is
+`7b513a5995110f262b8a322cc4bd9ac88e575aee`. It was downloaded from the Hub,
+validated over all 3,200 rows, and exercised through the complete Task path.
+The implementation still accepts an alternate `repo_id` and `revision`.
 
 ## Source and Simulator Identity
 
@@ -245,6 +246,8 @@ safety, and optima outside the measured pool are out of scope.
 
 ## References
 
+- Published Dataset revision,
+  <https://huggingface.co/datasets/sci-modeling-bench/design-bench/tree/7b513a5995110f262b8a322cc4bd9ac88e575aee>.
 - Trabucco et al., *Design-Bench: Benchmarks for Data-Driven Offline
   Model-Based Optimization*, 2022, <https://arxiv.org/abs/2202.08450>.
 - Design-Bench source at the referenced revision,

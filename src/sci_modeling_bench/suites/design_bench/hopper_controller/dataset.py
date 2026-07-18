@@ -24,11 +24,15 @@ from sci_modeling_bench.suites.design_bench.hopper_controller.simulator import (
 )
 
 DEFAULT_HOPPER_CONTROLLER_REPO_ID = "sci-modeling-bench/design-bench"
+DEFAULT_HOPPER_CONTROLLER_REVISION = (
+    "7b513a5995110f262b8a322cc4bd9ac88e575aee"
+)
 HOPPER_CONTROLLER_CONFIG_NAME = "hopper_controller"
 HOPPER_CONTROLLER_DEFAULT_SPLIT = "policies"
 DEFAULT_HOPPER_CONTROLLER_SOURCE = HubDatasetSource(
     repo_id=DEFAULT_HOPPER_CONTROLLER_REPO_ID,
     config_name=HOPPER_CONTROLLER_CONFIG_NAME,
+    revision=DEFAULT_HOPPER_CONTROLLER_REVISION,
 )
 
 EXPECTED_POLICY_COUNT = 3_200
@@ -59,7 +63,7 @@ class HopperControllerDataset(Dataset):
         cls,
         repo_id: str = DEFAULT_HOPPER_CONTROLLER_REPO_ID,
         config_name: str | None = HOPPER_CONTROLLER_CONFIG_NAME,
-        revision: str | None = None,
+        revision: str | None = DEFAULT_HOPPER_CONTROLLER_REVISION,
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,

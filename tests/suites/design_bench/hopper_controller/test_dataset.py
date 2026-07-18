@@ -1,8 +1,16 @@
 from __future__ import annotations
 
 from sci_modeling_bench.suites.design_bench.hopper_controller import (
+    DEFAULT_HOPPER_CONTROLLER_REVISION,
+    DEFAULT_HOPPER_CONTROLLER_SOURCE,
     EXPECTED_ROLLOUT_COUNT,
 )
+
+
+def test_default_source_pins_the_published_dataset_revision() -> None:
+    assert DEFAULT_HOPPER_CONTROLLER_SOURCE.revision == (
+        DEFAULT_HOPPER_CONTROLLER_REVISION
+    )
 
 
 def test_dataset_validates_policy_identity_and_rollout_summaries(

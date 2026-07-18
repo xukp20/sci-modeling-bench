@@ -21,6 +21,7 @@ from sci_modeling_bench.suites.design_bench.cell_dag_nas import (
     CellDAGNASValidator,
 )
 from sci_modeling_bench.suites.design_bench.hopper_controller import (
+    DEFAULT_HOPPER_CONTROLLER_REVISION,
     DEFAULT_HOPPER_CONTROLLER_SOURCE,
     EXPECTED_POLICY_COUNT,
     EXPECTED_ROLLOUT_COUNT,
@@ -80,6 +81,7 @@ __all__ = [
     "CELL_DAG_NAS_CONFIG_NAME",
     "CELL_DAG_NAS_DEFAULT_SPLIT",
     "DEFAULT_CELL_DAG_NAS_SOURCE",
+    "DEFAULT_HOPPER_CONTROLLER_REVISION",
     "DEFAULT_HOPPER_CONTROLLER_SOURCE",
     "DEFAULT_SUPERCONDUCTOR_SOURCE",
     "DEFAULT_TFBIND8_SOURCE",

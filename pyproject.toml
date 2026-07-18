@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-modeling-bench"
-version = "0.4.0.dev0"
+version = "0.4.0"
 description = "An observation-grounded benchmark framework for scientific modeling and design."
 readme = "README.md"
 requires-python = ">=3.10"

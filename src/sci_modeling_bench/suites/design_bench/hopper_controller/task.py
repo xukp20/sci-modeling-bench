@@ -8,6 +8,7 @@ from sci_modeling_bench.objective import Candidate
 from sci_modeling_bench.task import CandidatePoolRankingTask
 from sci_modeling_bench.suites.design_bench.hopper_controller.dataset import (
     DEFAULT_HOPPER_CONTROLLER_REPO_ID,
+    DEFAULT_HOPPER_CONTROLLER_REVISION,
     HOPPER_CONTROLLER_CONFIG_NAME,
     HopperControllerDataset,
 )
@@ -68,7 +69,7 @@ class HopperControllerCandidatePoolRankingTask(
         cls,
         repo_id: str = DEFAULT_HOPPER_CONTROLLER_REPO_ID,
         config_name: str | None = HOPPER_CONTROLLER_CONFIG_NAME,
-        revision: str | None = None,
+        revision: str | None = DEFAULT_HOPPER_CONTROLLER_REVISION,
         *,
         token: str | None = None,
         submission_size: int = 32,

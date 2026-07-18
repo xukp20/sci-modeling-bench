@@ -2,6 +2,7 @@
 
 from sci_modeling_bench.suites.design_bench.hopper_controller.dataset import (
     DEFAULT_HOPPER_CONTROLLER_REPO_ID,
+    DEFAULT_HOPPER_CONTROLLER_REVISION,
     DEFAULT_HOPPER_CONTROLLER_SOURCE,
     EXPECTED_POLICY_COUNT,
     EXPECTED_ROLLOUT_COUNT,
@@ -29,6 +30,7 @@ from sci_modeling_bench.suites.design_bench.hopper_controller.task import (
 
 __all__ = [
     "DEFAULT_HOPPER_CONTROLLER_REPO_ID",
+    "DEFAULT_HOPPER_CONTROLLER_REVISION",
     "DEFAULT_HOPPER_CONTROLLER_SOURCE",
     "EXPECTED_POLICY_COUNT",
     "EXPECTED_ROLLOUT_COUNT",

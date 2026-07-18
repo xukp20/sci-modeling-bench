@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import ClassVar
 
 import numpy as np
@@ -13,12 +13,12 @@ from sci_modeling_bench.exceptions import ProtocolError
 from sci_modeling_bench.protocol import Protocol
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4._sequence import (
     SEQUENCE_COUNT,
-    sequence_indices,
 )
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4.dataset import (
     TFBIND10_PHO4_DEFAULT_SPLIT,
 )
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4.objective import (
+    Pho4AffinityLandscape,
     build_affinity_landscape,
 )
 
@@ -35,26 +35,12 @@ _AGENT_OBSERVATION_COLUMNS = (
 
 
 @dataclass(frozen=True)
-class TFBind10Pho4AgentInput:
-    """Raw visible replicates and a label-hidden candidate sequence pool."""
-
-    observations: HFDataset
-    candidates: HFDataset
-
-
-@dataclass(frozen=True)
-class TFBind10Pho4LowerHalfProtocol(Protocol[TFBind10Pho4AgentInput]):
+class TFBind10Pho4LowerHalfProtocol(Protocol[HFDataset]):
     """Expose raw observations for the lower half of the measured landscape."""
 
-    protocol_id: ClassVar[str] = "design-bench/tfbind10-pho4-lower-half-v1"
+    protocol_id: ClassVar[str] = "design-bench/tfbind10-pho4-lower-half-v2"
 
     visible_max_percentile: float = 50.0
-    _score_tables: dict[Dataset, HFDataset] = field(
-        default_factory=dict,
-        init=False,
-        repr=False,
-        compare=False,
-    )
 
     def __post_init__(self) -> None:
         if not 0.0 < self.visible_max_percentile < 100.0:
@@ -65,76 +51,30 @@ class TFBind10Pho4LowerHalfProtocol(Protocol[TFBind10Pho4AgentInput]):
         dataset: Dataset,
         *,
         split: str | None = None,
-    ) -> TFBind10Pho4AgentInput:
-        observations = self._load_observations(dataset, split)
-        scores = self._score_table(dataset, observations)
-        visible_sequences, candidate_scores, _ = self.partition(scores)
-
-        visible_by_sequence = np.zeros(SEQUENCE_COUNT, dtype=np.bool_)
-        visible_by_sequence[sequence_indices(list(visible_sequences["sequence"]))] = (
-            True
-        )
-        observation_indices = sequence_indices(list(observations["sequence"]))
-        visible_rows = np.flatnonzero(visible_by_sequence[observation_indices]).tolist()
-        agent_observations = observations.select(visible_rows).select_columns(
-            list(_AGENT_OBSERVATION_COLUMNS)
-        )
-        candidates = candidate_scores.select_columns(["sequence"])
-        return TFBind10Pho4AgentInput(
-            observations=agent_observations,
-            candidates=candidates,
-        )
-
-    def candidate_pool(
-        self,
-        dataset: Dataset,
-        *,
-        split: str | None = None,
-        score_table: HFDataset | None = None,
+        landscape: Pho4AffinityLandscape | None = None,
     ) -> HFDataset:
-        """Return the trusted, labeled upper-half pool used by the Task."""
-
         observations = self._load_observations(dataset, split)
-        scores = (
-            score_table
-            if score_table is not None
-            else self._score_table(dataset, observations)
+        selected_landscape = (
+            landscape
+            if landscape is not None
+            else build_affinity_landscape(observations)
         )
-        self._validate_score_table(scores)
-        self._score_tables[dataset] = scores
-        _, candidates, _ = self.partition(scores)
-        return candidates
-
-    def partition(
-        self,
-        scores: HFDataset,
-    ) -> tuple[HFDataset, HFDataset, float]:
-        self._validate_score_table(scores)
-        values = np.asarray(scores["affinity_score"], dtype=np.float64)
+        self._validate_landscape(selected_landscape, len(observations))
+        values = selected_landscape.scores[selected_landscape.observed]
         cutoff = float(
             np.percentile(values, self.visible_max_percentile, method="linear")
         )
-        visible_indices = np.flatnonzero(values <= cutoff).tolist()
-        candidate_indices = np.flatnonzero(values > cutoff).tolist()
-        if not visible_indices or not candidate_indices:
-            raise ProtocolError("affinity percentile partition produced an empty side")
-        return (
-            scores.select(visible_indices),
-            scores.select(candidate_indices),
-            cutoff,
+        visible_by_sequence = selected_landscape.observed & (
+            selected_landscape.scores <= cutoff
         )
-
-    def _score_table(
-        self,
-        dataset: Dataset,
-        observations: HFDataset,
-    ) -> HFDataset:
-        cached = self._score_tables.get(dataset)
-        if cached is not None:
-            return cached
-        scores = build_affinity_landscape(observations).to_dataset()
-        self._score_tables[dataset] = scores
-        return scores
+        visible_rows = np.flatnonzero(
+            visible_by_sequence[selected_landscape.row_sequence_indices]
+        ).tolist()
+        if not visible_rows or len(visible_rows) == len(observations):
+            raise ProtocolError("affinity percentile selection produced an empty side")
+        return observations.select(visible_rows).select_columns(
+            list(_AGENT_OBSERVATION_COLUMNS)
+        )
 
     def _load_observations(
         self,
@@ -159,12 +99,24 @@ class TFBind10Pho4LowerHalfProtocol(Protocol[TFBind10Pho4AgentInput]):
         return observations
 
     @staticmethod
-    def _validate_score_table(scores: HFDataset) -> None:
-        missing = sorted({"sequence", "affinity_score"} - set(scores.column_names))
-        if missing:
-            raise ProtocolError(f"Pho4 score table is missing columns: {missing}")
-        values = np.asarray(scores["affinity_score"], dtype=np.float64)
-        if values.ndim != 1 or values.size == 0 or not np.all(np.isfinite(values)):
+    def _validate_landscape(
+        landscape: Pho4AffinityLandscape,
+        observation_count: int,
+    ) -> None:
+        if landscape.scores.shape != (SEQUENCE_COUNT,):
+            raise ProtocolError("Pho4 landscape scores have an invalid shape")
+        if landscape.observed.shape != (SEQUENCE_COUNT,):
+            raise ProtocolError("Pho4 landscape observed mask has an invalid shape")
+        if landscape.row_sequence_indices.shape != (observation_count,):
             raise ProtocolError(
-                "affinity_score must be a non-empty finite scalar column"
+                "Pho4 landscape row indices do not match the observation split"
             )
+        if not np.any(landscape.observed):
+            raise ProtocolError("Pho4 landscape contains no observed sequences")
+        if not np.all(np.isfinite(landscape.scores[landscape.observed])):
+            raise ProtocolError("Pho4 observed affinity scores must be finite")
+        row_indices = landscape.row_sequence_indices
+        if np.any(row_indices < 0) or np.any(row_indices >= SEQUENCE_COUNT):
+            raise ProtocolError("Pho4 landscape row indices are outside the domain")
+        if not np.all(landscape.observed[row_indices]):
+            raise ProtocolError("Pho4 landscape row indices include unseen sequences")

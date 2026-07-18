@@ -62,6 +62,24 @@ def test_hugging_face_sequence_features_are_validated_without_crashing() -> None
     assert invalid.violations[0].code == "feature_mismatch"
 
 
+def test_optional_null_skips_value_constraints() -> None:
+    field = FieldSpec.model_validate(
+        {
+            "name": "x",
+            "description": "Optional bounded measurement.",
+            "required": False,
+            "constraints": [
+                {"kind": "range", "minimum": 0.0},
+                {"kind": "finite"},
+            ],
+        }
+    )
+
+    report = validate_fields({"x": None}, (field,))
+
+    assert report.valid
+
+
 def test_arrow_schema_rejects_values_accepted_by_permissive_hf_encoding(
     monkeypatch,
 ) -> None:

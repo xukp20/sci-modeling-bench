@@ -37,6 +37,7 @@ class Pho4AffinityLandscape:
 
     scores: np.ndarray
     observed: np.ndarray
+    row_sequence_indices: np.ndarray
     bound_depth: int
     input_depth: int
 
@@ -177,11 +178,14 @@ def build_affinity_landscape(observations: HFDataset) -> Pho4AffinityLandscape:
     )
     observed = np.zeros(SEQUENCE_COUNT, dtype=np.bool_)
     observed[sequence_ids] = True
+    row_sequence_indices = sequence_ids.astype(np.int32, copy=True)
     score.setflags(write=False)
     observed.setflags(write=False)
+    row_sequence_indices.setflags(write=False)
     return Pho4AffinityLandscape(
         scores=score,
         observed=observed,
+        row_sequence_indices=row_sequence_indices,
         bound_depth=bound_depth,
         input_depth=input_depth,
     )

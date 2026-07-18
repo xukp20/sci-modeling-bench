@@ -135,14 +135,15 @@ def validate_fields(
             continue
 
         value = values[field.name]
-        if value is None and field.required:
-            violations.append(
-                Violation(
-                    code="null_value",
-                    field=field.name,
-                    message=f"required field {field.name!r} cannot be null",
+        if value is None:
+            if field.required:
+                violations.append(
+                    Violation(
+                        code="null_value",
+                        field=field.name,
+                        message=f"required field {field.name!r} cannot be null",
+                    )
                 )
-            )
             continue
         if features is not None and field.name in features:
             try:

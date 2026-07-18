@@ -98,9 +98,9 @@ evaluation.candidates[0].validation
 ```
 
 TFBind8 and CellDAG-NAS use `best_k_mean` with a `full_domain` reference.
-TFBind10 Pho4 uses `normalized_enrichment` with a frozen `evaluation_pool`
-reference. Their suite guides define the corresponding candidate identities,
-visible inputs, and scientific score fields.
+TFBind10 Pho4 uses `normalized_enrichment` with its exhaustive DNA 10-mer
+`full_domain` reference. Their suite guides define the corresponding candidate
+identities, visible inputs, and scientific score fields.
 
 ## Candidate-Pool Ranking
 
@@ -115,8 +115,10 @@ checked for pool membership, and sent to the Objective; a longer suffix is
 accepted but ignored. The evaluation adds `candidate_pool_size`,
 `evaluated_candidates`, and `ignored_candidates`.
 
-Superconductor uses this contract because its Objective is an exact lookup
-only over a frozen measured pool, not an oracle for arbitrary new materials.
+Superconductor, Hopper Controller, UTR MRL, GFP, and the six DrugMatrix
+endpoint Tasks use this contract. Their Objectives are trusted only over
+frozen measured or reproducibly simulated pools, not as evaluators for
+arbitrary generated candidates.
 
 ## Trust Boundary
 

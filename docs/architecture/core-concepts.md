@@ -100,9 +100,10 @@ Published data and manifests are immutable inputs from the framework's point of
 view. Protocols return ordinary data objects without mutating the Dataset, and
 Objectives validate candidates against the Dataset before evaluation.
 
-## First Supported Task: Black-Box Optimization
+## Implemented Task Families
 
-The first supported setting is offline black-box optimization:
+SciModelingBench implements two ordered-candidate Task families. Black-box
+optimization follows this flow:
 
 1. A Protocol derives a limited offline observation set from the complete
    Dataset.
@@ -118,9 +119,14 @@ Dataset handle, the complete data artifact, or Objective internals would bypass
 the intended black-box boundary. Process isolation and feedback policy belong
 to the harness.
 
-The [TFBind8 suite page](../suites/design-bench/tfbind8.md) describes the first
-concrete Dataset, exact Objective, offline-data Protocol, and black-box
-optimization Task.
+Candidate-pool ranking uses the same trusted flow but restricts submissions to
+an Agent-visible finite pool with hidden labels. This is used when the source
+contains reliable measurements for known candidates but no trustworthy
+evaluator for arbitrary generated inputs. At least the configured prefix size
+must be submitted, and only that ordered prefix is scored.
+
+The [Design-Bench suite index](../suites/design-bench/README.md) lists the
+implemented Tasks and explains why each setting uses one of these forms.
 
 ## Deliberately Deferred
 

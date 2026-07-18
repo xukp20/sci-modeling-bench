@@ -13,4 +13,7 @@ For how these interfaces fit together, read
 [Architecture and core concepts](../architecture/core-concepts.md). The
 [TFBind8](../suites/design-bench/tfbind8.md) and
 [Superconductor](../suites/design-bench/superconductor.md) show all four in
-complete black-box optimization workflows.
+complete ordered-candidate workflows.
+
+The [Design-Bench suite index](../suites/design-bench/README.md) lists all
+eight implemented integrations.

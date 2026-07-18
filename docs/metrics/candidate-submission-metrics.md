@@ -153,6 +153,10 @@ semantics and requires a new Task version even when the Dataset is unchanged.
 | Task | Submission size | Default primary metric | Reason |
 | --- | ---: | --- | --- |
 | TFBind8 | 128 | `best_k_mean` | More robust and less easily saturated than finding one high-scoring sequence |
-| TFBind10 Pho4 measured-pool screening | 128 | `normalized_enrichment` | Replicate audits favor robust batch quality over noisy single-sequence extremes |
+| TFBind10 Pho4 exhaustive-domain BBO | 128 | `normalized_enrichment` | Replicate audits favor robust batch quality over noisy single-sequence extremes |
 | Superconductor measured-pool ranking | 128 | `global_ndcg` | Best-at-128 is already close to saturation; the Task requires both selection and prioritization |
 | CellDAG-NAS | 128 | `best_k_mean` | More repeat-stable than top-1 while remaining focused on finding a small set of strong architectures |
+| Hopper Controller checkpoint ranking | 32 | `global_ndcg` | The measured pool is small enough for strong selection baselines, so ordered prioritization remains part of the score |
+| UTR MRL compositional ranking | 128 | `global_ndcg` | The Task tests transfer to a held-out biological factor combination and the ordering of selected sequences |
+| GFP measured-pool ranking | 128 | `global_ndcg` | Bright variants must be selected from an upper-tail pool and prioritized under measurement variation |
+| DrugMatrix endpoint ranking | 64 | `global_ndcg` | Each endpoint Task ranks treatment conditions by absolute control deviation rather than selecting one extreme observation |

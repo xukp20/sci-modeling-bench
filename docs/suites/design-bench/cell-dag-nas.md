@@ -16,6 +16,18 @@ The integration combines:
 - `CellDAGNASBlackBoxOptimizationTask`: duplicate-aware evaluation of exactly
   128 submitted graph encodings.
 
+## At a Glance
+
+| Property | Default setting |
+|---|---|
+| Task | `CellDAGNASBlackBoxOptimizationTask` |
+| Task ID | `design-bench/cell-dag-nas-black-box-optimization-v1` |
+| Hub config / split | `cell_dag_nas` / `architectures` |
+| Agent input | Lowest 40% of canonical graphs with aliases and repeated outcomes |
+| Submission | Exactly 128 canonical-unique valid graph encodings |
+| Objective | Exact graph-invariant lookup over official NAS records |
+| Primary metric | `best_k_mean` |
+
 ## End-to-End Use
 
 ```python
@@ -166,9 +178,8 @@ canonical duplicates. Isomorphic aliases have the same candidate identity.
 They cannot occupy multiple slots in an eligible submission.
 
 A frozen audit used 5,000 random canonical-unique 128-graph submissions from
-the Task's full domain. Random `best_score` was `0.93609 +/- 0.00173`, already
-close to the table optimum `0.94318`; random `best_k_mean` was
-`0.93378 +/- 0.00127`. Across the three official training repeats, the average
+the Task's full domain; random results below are reported as mean +/- standard
+deviation. Across the three official training repeats, the average
 Spearman correlation with the three-repeat target was `0.517` for top-1 and
 `0.702` for best-five mean. This is why `best_k_mean`, rather than legacy
 `best_score`, is the default primary metric. `normalized_enrichment` remains a
@@ -181,21 +192,23 @@ strict-offline setting.
 
 ## Data Analysis and Modeling Notes
 
-The low-40% Protocol is target-derived. A random draw from its hidden
-complement has a higher mean `best_k_mean` (`0.93485 +/- 0.00106`) than a
-full-domain random draw, but it is only a split diagnostic, not the Task's
-candidate rule or a comparable baseline. Final candidates may be any legal,
-in-table canonical graph; all relative metrics use the 423,624-graph
-`full_domain` reference.
+The low-40% Protocol is target-derived, so drawing directly from its hidden
+complement is a split diagnostic rather than a comparable Agent baseline.
+Final candidates may be any legal, in-table canonical graph; all relative
+metrics use the 423,624-graph `full_domain` reference.
 
-Two lightweight audit methods demonstrate where modeling work belongs:
+The complete audit table is:
 
 | Method | `best_score` | `best_k_mean` | `batch_mean` | `normalized_enrichment` |
 | --- | ---: | ---: | ---: | ---: |
+| Random full-domain | `0.93609 +/- 0.00173` | `0.93378 +/- 0.00127` | `0.89677 +/- 0.00514` | `-0.001 +/- 0.119` |
+| Random hidden-60% diagnostic | `0.93681 +/- 0.00156` | `0.93485 +/- 0.00106` | `0.91702 +/- 0.00085` | `0.467 +/- 0.020` |
 | Structural graph heuristic | `0.93630` | `0.93624` | `0.92308` | `0.608` |
 | Low-40%-only HistGradientBoosting surrogate | `0.93747` | `0.93423` | `0.92620` | `0.680` |
 
-These are metric audits, not a claimed NAS leaderboard. Suitable declared
+The hidden-60% row samples directly from the target-derived split complement;
+it is a leakage diagnostic, not an Agent-available baseline. These are metric
+audits, not a claimed NAS leaderboard. Suitable declared
 method choices include graph and operation features, path or motif counts,
 graph-aware surrogates, repeat-aware uncertainty estimates, and search methods
 over validated graph encodings. Aliases must be collapsed by canonical graph

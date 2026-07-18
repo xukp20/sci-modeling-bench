@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import numpy as np
+
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4 import (
     TFBind10Pho4LowerHalfProtocol,
     TFBind10Pho4PosteriorObjective,
@@ -19,21 +21,24 @@ def test_posterior_objective_returns_derived_affinity_in_order(
 
     assert outputs[0]["affinity_score"] > outputs[1]["affinity_score"]
     assert objective.output_fields == ("affinity_score",)
+    assert objective.landscape.row_sequence_indices.dtype == np.int32
+    assert objective.landscape.row_sequence_indices.shape == (32,)
+    assert not objective.landscape.row_sequence_indices.flags.writeable
     assert "affinity_score" not in {
         field.name for field in tiny_tfbind10_pho4_dataset.schema.targets
     }
 
 
-def test_protocol_exposes_raw_lower_half_and_hides_candidate_labels(
+def test_protocol_exposes_only_raw_lower_half_observations(
     tiny_tfbind10_pho4_dataset,
 ) -> None:
-    agent_input = TFBind10Pho4LowerHalfProtocol().build_input(
-        tiny_tfbind10_pho4_dataset
-    )
+    protocol = TFBind10Pho4LowerHalfProtocol()
+    agent_input = protocol.build_input(tiny_tfbind10_pho4_dataset)
 
-    assert len(agent_input.observations) == 16
-    assert set(agent_input.observations["sequence"]) == set(SEQUENCES[:4])
-    assert agent_input.observations.column_names == [
+    assert protocol.protocol_id == "design-bench/tfbind10-pho4-lower-half-v2"
+    assert len(agent_input) == 16
+    assert set(agent_input["sequence"]) == set(SEQUENCES[:4])
+    assert agent_input.column_names == [
         "sequence",
         "replicate_id",
         "bound_count",
@@ -42,5 +47,3 @@ def test_protocol_exposes_raw_lower_half_and_hides_candidate_labels(
         "input_fraction",
         "observed_ddg",
     ]
-    assert agent_input.candidates.column_names == ["sequence"]
-    assert set(agent_input.candidates["sequence"]) == set(SEQUENCES[4:])

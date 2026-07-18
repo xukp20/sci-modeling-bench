@@ -54,8 +54,12 @@ allows an Objective to compute, for example, one candidate-level posterior
 score from several raw replicate observations without publishing that score as
 offline data.
 
-Before scientific evaluation, `evaluate_batch()` calls
-`dataset.validate_inputs()` for every candidate. If a candidate is invalid, it
+Before scientific evaluation, `evaluate_batch()` validates the Dataset-schema
+view returned by `_candidate_for_dataset_validation()`. The default hook returns
+the candidate unchanged and therefore calls `dataset.validate_inputs()` on the
+public candidate mapping. A lookup Objective may override the hook when its
+public candidate is a stable handle for a Dataset input rather than the input
+itself. If a candidate is invalid, it
 raises `ObjectiveInputError` with `candidate_index` and the corresponding
 `ValidationReport`. The concrete implementation is not called for a partially
 invalid batch.
@@ -102,6 +106,10 @@ passed Dataset input validation. It must yield one mapping per candidate
 without reordering or deduplicating the batch. A concrete Objective should
 document whether each output is observed, analytic, simulated, learned, or
 derived from several Dataset fields.
+
+Override `_candidate_for_dataset_validation()` only to translate a public
+candidate handle into its Dataset input view. The hook must not silently repair
+an invalid scientific input or expose hidden target values.
 
 Use a Dataset-specific constructor when an Objective requires a particular
 dataset ID or split. Fail such compatibility checks during construction rather

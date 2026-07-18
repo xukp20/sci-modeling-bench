@@ -34,13 +34,7 @@
   &middot;
   <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/README.md">API</a>
   &middot;
-  <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/tfbind8.md">TFBind8</a>
-  &middot;
-  <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/tfbind10-pho4.md">TFBind10 Pho4</a>
-  &middot;
-  <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/superconductor.md">Superconductor</a>
-  &middot;
-  <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/cell-dag-nas.md">CellDAG-NAS</a>
+  <a href="https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/README.md">Design-Bench Suite</a>
   &middot;
   <a href="https://huggingface.co/datasets/sci-modeling-bench/design-bench">Dataset Hub</a>
 </p>
@@ -48,7 +42,9 @@
 SciModelingBench separates versioned scientific observations, Agent-visible
 inputs, trusted target functions, and benchmark evaluation into explicit,
 reusable interfaces. The source tree includes end-to-end TFBind8, TFBind10
-Pho4, Superconductor, and CellDAG-NAS Tasks.
+Pho4, Superconductor, CellDAG-NAS, Hopper Controller, UTR MRL, GFP, and
+DrugMatrix Tasks. The measured-pool integrations retain source observations
+and avoid treating legacy learned Design-Bench oracles as experimental truth.
 
 ## Installation
 
@@ -59,14 +55,7 @@ SciModelingBench requires Python 3.10 or later.
 Install the latest published version from PyPI:
 
 ```bash
-python -m pip install "sci-modeling-bench==0.3.0"
-```
-
-The same release can be installed from its Git tag:
-
-```bash
-python -m pip install \
-  "git+https://github.com/xukp20/sci-modeling-bench.git@v0.3.0"
+python -m pip install sci-modeling-bench
 ```
 
 ### Development Version
@@ -104,9 +93,7 @@ from sci_modeling_bench.suites.design_bench import (
     TFBind8BlackBoxOptimizationTask,
 )
 
-task = TFBind8BlackBoxOptimizationTask.from_hub(
-    revision="b9ec928a5b54e105926e86a2d89be80a07aa0763"
-)
+task = TFBind8BlackBoxOptimizationTask.from_hub()
 offline_data = task.build_input()
 
 submission = [
@@ -119,6 +106,12 @@ print(evaluation.score)
 print(evaluation.metrics)
 print(evaluation.valid_candidates, evaluation.invalid_candidates)
 ```
+
+When `revision` is omitted, the current default branch of the Dataset
+repository is resolved to an immutable commit SHA for that Dataset instance.
+For a reproducible benchmark run, pass a full commit SHA explicitly; the
+initial TFBind8 release is
+`2ee2856f4255bb6a64c11b6c2660a6f41418e654`.
 
 The TFBind8 observations are downloaded from the public SciModelingBench
 Hugging Face organization and are not bundled in the Python wheel.
@@ -146,18 +139,14 @@ builders.
 
 ## Documentation
 
-- [Documentation index](https://github.com/xukp20/sci-modeling-bench/tree/main/docs)
-- [Architecture and core concepts](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/architecture/core-concepts.md)
-- [Dataset API](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/dataset.md)
-- [Objective API](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/objective.md)
-- [Protocol API](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/protocol.md)
-- [Task API](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/task.md)
-- [Candidate submission metrics](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/metrics/candidate-submission-metrics.md)
-- [TFBind8 integration](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/tfbind8.md)
-- [TFBind10 Pho4 integration](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/tfbind10-pho4.md)
-- [Superconductor integration](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/superconductor.md)
-- [CellDAG-NAS integration](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/cell-dag-nas.md)
-- [Changelog](https://github.com/xukp20/sci-modeling-bench/blob/main/CHANGELOG.md)
+| Area | Entry point |
+|---|---|
+| Documentation | [Documentation index](https://github.com/xukp20/sci-modeling-bench/tree/main/docs) |
+| Architecture | [Core concepts and data flow](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/architecture/core-concepts.md) |
+| Public interfaces | [API overview](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/api/README.md) |
+| Implemented settings | [Design-Bench suite](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/suites/design-bench/README.md) |
+| Evaluation | [Candidate submission metrics](https://github.com/xukp20/sci-modeling-bench/blob/main/docs/metrics/candidate-submission-metrics.md) |
+| Changes | [Changelog](https://github.com/xukp20/sci-modeling-bench/blob/main/CHANGELOG.md) |
 
 ## Development Status
 

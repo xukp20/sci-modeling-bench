@@ -24,7 +24,7 @@ dataset = Dataset.from_hub(
 
 `Dataset.from_hub()` has this signature:
 
-```python
+```text
 Dataset.from_hub(
     repo_id: str,
     config_name: str | None = None,

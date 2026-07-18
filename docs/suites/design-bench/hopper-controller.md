@@ -5,6 +5,18 @@ frozen stochastic Hopper-v5 rollouts and exposes a finite-pool ranking Task.
 The Task asks an Agent to prioritize 32 measured controllers from a hidden-label
 pool; it does not accept arbitrary new weights or run MuJoCo during evaluation.
 
+## At a Glance
+
+| Property | Default setting |
+|---|---|
+| Task | `HopperControllerCandidatePoolRankingTask` |
+| Task ID | `design-bench/hopper-controller-candidate-pool-ranking-v1` |
+| Hub config / split | `hopper_controller` / `policies` |
+| Agent input | Lower 60% with rollout evidence and an unlabeled upper pool |
+| Scored prefix | First 32 distinct policies from the measured pool |
+| Objective | Mean of 500 frozen stochastic Hopper-v5 returns |
+| Primary metric | `global_ndcg` |
+
 ## Dataset
 
 `HopperControllerDataset` contains 3,200 Design-Bench policy vectors. Each
@@ -213,11 +225,15 @@ For the frozen v1 pool:
 | Reference or baseline | Mean@32 |
 |---|---:|
 | Random candidate batch, median | `484.24` |
+| Privileged per-run linear checkpoint trend diagnostic | `511.97` |
+| Privileged trial/checkpoint Ridge diagnostic | `512.12` |
 | Raw-weight Ridge diagnostic | `528.29` |
 | Oracle top 32 | `638.57` |
 
 The gap shows that the Task has learnable signal without being saturated by a
-simple raw-vector model.
+simple raw-vector model. The two privileged trajectory rows use true PPO run
+and checkpoint coordinates that the Protocol withholds. They are leakage
+diagnostics, not Agent-available baselines.
 
 ## Modeling Considerations
 

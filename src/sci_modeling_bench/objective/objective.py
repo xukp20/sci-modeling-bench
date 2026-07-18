@@ -55,7 +55,9 @@ class Objective(ABC):
 
         candidate_batch = tuple(candidates)
         for candidate_index, candidate in enumerate(candidate_batch):
-            report = self.dataset.validate_inputs(candidate)
+            report = self.dataset.validate_inputs(
+                self._candidate_for_dataset_validation(candidate)
+            )
             if not report.valid:
                 raise ObjectiveInputError(candidate_index, report)
 
@@ -81,6 +83,11 @@ class Objective(ABC):
                 )
             outputs.append({field: output[field] for field in self.output_fields})
         return tuple(outputs)
+
+    def _candidate_for_dataset_validation(self, candidate: Candidate) -> Candidate:
+        """Return the Dataset-schema view used to validate one candidate."""
+
+        return candidate
 
     @abstractmethod
     def _evaluate_batch(

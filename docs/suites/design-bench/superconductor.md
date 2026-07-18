@@ -1,9 +1,21 @@
-# Superconductor Measured-Pool Optimization
+# Superconductor Candidate-Pool Ranking
 
 SciModelingBench exposes the UCI Superconductivity Data as canonical elemental
 composition groups and evaluates ordered candidate selections against retained
 measured critical temperatures. The default Task is CPU-friendly and does not
 use the learned Random Forest oracle from the original Design-Bench task.
+
+## At a Glance
+
+| Property | Default setting |
+|---|---|
+| Task | `SuperconductorCandidatePoolRankingTask` |
+| Task ID | `design-bench/superconductor-candidate-pool-ranking-v1` |
+| Hub config / split | `superconductor` / `composition_groups` |
+| Agent input | Lower-temperature labeled groups and an upper-tail unlabeled pool |
+| Scored prefix | First 128 distinct candidates from the measured pool |
+| Objective | Lookup of the retained group-median critical temperature |
+| Primary metric | `global_ndcg` |
 
 ## Load the Dataset
 

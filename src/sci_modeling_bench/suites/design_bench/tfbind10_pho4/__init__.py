@@ -12,7 +12,6 @@ from sci_modeling_bench.suites.design_bench.tfbind10_pho4.objective import (
     TFBind10Pho4PosteriorObjective,
 )
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4.protocol import (
-    TFBind10Pho4AgentInput,
     TFBind10Pho4LowerHalfProtocol,
 )
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4.task import (
@@ -24,7 +23,6 @@ __all__ = [
     "Pho4AffinityLandscape",
     "TFBIND10_PHO4_CONFIG_NAME",
     "TFBIND10_PHO4_DEFAULT_SPLIT",
-    "TFBind10Pho4AgentInput",
     "TFBind10Pho4BlackBoxOptimizationTask",
     "TFBind10Pho4Dataset",
     "TFBind10Pho4LowerHalfProtocol",

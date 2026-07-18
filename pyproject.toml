@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-modeling-bench"
-version = "0.4.0"
+version = "0.5.0"
 description = "An observation-grounded benchmark framework for scientific modeling and design."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -42,7 +42,9 @@ dev = [
   "twine>=5.1",
 ]
 data-build = [
+  "openpyxl>=3.1",
   "protobuf>=4",
+  "rdkit>=2024.3",
 ]
 hopper-sim = [
   "gymnasium[mujoco]>=1.3,<1.4",
@@ -61,6 +63,9 @@ smb-build-tfbind10-pho4 = "sci_modeling_bench.suites.design_bench.tfbind10_pho4.
 smb-build-cell-dag-nas = "sci_modeling_bench.suites.design_bench.cell_dag_nas.build:main"
 smb-build-superconductor = "sci_modeling_bench.suites.design_bench.superconductor.build:main"
 smb-build-hopper-controller = "sci_modeling_bench.suites.design_bench.hopper_controller.build:main"
+smb-build-utr-mrl = "sci_modeling_bench.suites.design_bench.utr_mrl.build:main"
+smb-build-gfp = "sci_modeling_bench.suites.design_bench.gfp.build:main"
+smb-build-drugmatrix = "sci_modeling_bench.suites.design_bench.drugmatrix.build:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

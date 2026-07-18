@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-18
+
+### Added
+
+- Measured eGFP UTR MRL Dataset with 318,468 canonical 50-nt sequences,
+  deterministic uAUG and Kozak annotations, a reproducible Hub release
+  builder, and a label-hidden biological compositional Protocol.
+- Finite-pool measured MRL Objective and compositional ranking Task using
+  `global_ndcg` as its primary metric and preserving common candidate-quality
+  diagnostics.
+- Corrected Sarkisyan GFP Dataset with 51,715 unique protein genotypes,
+  retained nucleotide and filtered-barcode measurement context, a reproducible
+  Figshare v1 builder, and strict cross-level validation.
+- GFP lower-to-higher measured-pool Protocol, protein-level measured Objective,
+  and 128-sequence ranking Task using `global_ndcg` without the legacy learned
+  Transformer oracle.
+- DrugMatrix clinical-pathology Dataset preserving 10,605 individual-animal
+  observations, six measured endpoints, audited molecular mappings, and a
+  reproducible CEBS/ChEMBL release builder.
+- DrugMatrix measured-condition Protocol, control-relative endpoint Objective,
+  and six configurable 64-condition ranking settings using `global_ndcg`
+  without the legacy context-free learned ChEMBL oracles.
+
+### Changed
+
+- **Breaking:** TFBind10 Pho4 now uses the v2 standard black-box optimization
+  contract. Its Protocol directly returns lower-half observation rows instead
+  of `TFBind10Pho4AgentInput`, submissions may contain any valid DNA 10-mer,
+  and relative metrics use the complete `4^10` domain rather than an
+  upper-half evaluation pool. Callers should use the returned Dataset directly
+  and compare results only under the v2 Task ID.
+- Objectives can translate a public candidate handle to its Dataset-schema
+  validation view before evaluation, enabling condition-level measured lookup
+  without adding derived Task IDs to observation tables.
+
+### Fixed
+
+- Optional semantic fields with null values now bypass physical feature
+  encoding after required-field validation, allowing sparse scientific context
+  columns to validate as declared.
+- TFBind10 Pho4 Task input construction reuses the Objective's NumPy affinity
+  landscape and row-to-sequence index instead of rebuilding the landscape,
+  materializing a million-row score table, or re-encoding 4.16 million DNA
+  strings.
+
 ## [0.4.0] - 2026-07-18
 
 ### Added
@@ -130,7 +175,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dataset artifacts are distributed separately from the Python package and
   retain their own source, citation, provenance, and license metadata.
 
-[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.1.0...v0.2.0

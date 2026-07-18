@@ -1,8 +1,20 @@
-# TFBind10 Pho4
+# TFBind10 Pho4 Black-Box Optimization
 
-TFBind10 Pho4 is a measured-pool DNA sequence optimization Task built from the
+TFBind10 Pho4 is an exhaustive-domain DNA sequence optimization Task built from the
 BET-seq assay of Le et al. It replaces Design-Bench's clipped per-row ddG lookup
 with raw replicate observations and a deterministic count-grounded evaluator.
+
+## At a Glance
+
+| Property | Default setting |
+|---|---|
+| Task | `TFBind10Pho4BlackBoxOptimizationTask` |
+| Task ID | `design-bench/tfbind10-pho4-black-box-optimization-v2` |
+| Hub config / split | `tfbind10_pho4` / `observations` |
+| Agent input | Raw replicate rows for the lower half of the measured landscape |
+| Submission | Exactly 128 distinct valid DNA 10-mers |
+| Objective | Deterministic posterior score derived from four count replicates |
+| Primary metric | `normalized_enrichment` |
 
 ## Scientific Object
 
@@ -95,12 +107,14 @@ print(output["affinity_score"])
 ## Agent Input Protocol
 
 `TFBind10Pho4LowerHalfProtocol` partitions unique sequences at the median
-posterior affinity score:
+posterior affinity score. Its corrected Protocol ID is
+`design-bench/tfbind10-pho4-lower-half-v2`:
 
 - 524,300 lower-half sequences are visible through all 2,087,323 of their raw
   replicate rows;
-- 524,276 upper-half sequence identities form the label-hidden candidate pool;
-- the Agent does not receive `affinity_score` for either side.
+- the remaining 524,276 sequence identities and all posterior `affinity_score`
+  values are not returned;
+- the legal design domain remains every length-10 sequence over `A/C/G/T`.
 
 The median has 144 tied sequences. The Protocol places ties on the visible
 side using `score <= median`, which keeps the two sides deterministic.
@@ -111,29 +125,34 @@ from sci_modeling_bench.suites.design_bench import (
 )
 
 agent_input = TFBind10Pho4LowerHalfProtocol().build_input(dataset)
-print(agent_input.observations.column_names)
-print(agent_input.candidates.column_names)  # ["sequence"]
+print(agent_input.column_names)
 ```
 
 The Agent is responsible for replicate handling, zero-count treatment,
-feature construction, sequence modeling, and candidate ranking. The Protocol
-does not publish a pre-aggregated training label.
+feature construction, sequence modeling, and candidate generation. The Protocol
+does not publish a pre-aggregated training label or a candidate table. Because
+the complete `4^10` domain is enumerable, listing the complement of the visible
+sequences would add no information and would incorrectly turn the Task into a
+finite-pool ranking interface.
 
 ## Optimization Task
 
 `TFBind10Pho4BlackBoxOptimizationTask` requires an ordered batch of 128 unique,
-valid sequences from the upper-half candidate pool. It reports the complete
-common candidate metric set and uses `normalized_enrichment` as its default
-primary metric:
+valid DNA 10-mers from the complete domain. Visible lower-half sequences remain
+legal submissions; they are not useful unless a method has a reason to resubmit
+them. Its Task ID is
+`design-bench/tfbind10-pho4-black-box-optimization-v2`. The Task reports the
+complete common candidate metric set and uses `normalized_enrichment` as its
+default primary metric:
 
 ```text
-(submitted batch mean - candidate-pool mean)
+(submitted batch mean - full-domain mean)
 -------------------------------------------------
-(measured top-128 pool mean - candidate-pool mean)
+(measured top-128 domain mean - full-domain mean)
 ```
 
-Random pool selection has expectation zero. A value of one means that the
-submitted batch mean equals the frozen measured pool's top-128 batch mean; it
+Random full-domain selection has expectation zero. A value of one means that the
+submitted batch mean equals the frozen measured domain's top-128 batch mean; it
 does not claim a theoretical or independently validated physical optimum.
 
 ```python
@@ -144,12 +163,9 @@ from sci_modeling_bench.suites.design_bench import (
 task = TFBind10Pho4BlackBoxOptimizationTask.from_hub(
     revision="51155f061b77c9f56a0ad8cf3b04c4ae481a7274"
 )
-agent_input = task.build_input()
-
-submission = [
-    {"sequence": sequence}
-    for sequence in agent_input.candidates["sequence"][:128]
-]
+offline_data = task.build_input()
+visible_sequences = list(dict.fromkeys(offline_data["sequence"]))
+submission = [{"sequence": sequence} for sequence in visible_sequences[:128]]
 evaluation = task.evaluate(submission)
 
 print(evaluation.primary_metric)  # normalized_enrichment
@@ -158,8 +174,9 @@ print(evaluation.metrics)
 ```
 
 A wrong batch size is a submission-level error. Invalid DNA, duplicate
-sequences, and visible or otherwise out-of-pool candidates receive candidate
-diagnostics. Any such batch is ineligible for aggregate benchmark metrics.
+sequences, and candidates absent from the complete measured landscape receive
+candidate diagnostics. Any such batch is ineligible for aggregate benchmark
+metrics.
 
 ## Data Analysis, Metric Choice, and Modeling Notes
 
@@ -170,31 +187,39 @@ values. The trusted posterior Objective pools the four bound libraries and
 counts the shared input library for replicates 3 and 4 once; an Agent must make
 its own corresponding data-handling and modeling choices from the visible rows.
 
-The metric audit used 20,000 random 128-sequence submissions from the frozen
-upper-half pool. Mono- and dinucleotide Ridge models train only on the visible
-lower half. The validated-NN row is an external diagnostic landscape, not a
-baseline available through the Task input.
+The v2 metric audit used 20,000 random 128-sequence submissions from the full
+domain with seed `20260718`. `Random unseen` excludes the visible lower-half
+identities and is the minimal baseline that uses the disclosed split. Mono- and
+dinucleotide Ridge models train only on the visible lower half. The validated-NN
+row is an external diagnostic landscape, not a baseline available through the
+Task input.
 
-| Method or diagnostic | `best_score` | `best_k_mean` | `batch_mean` | `global_ndcg` | `normalized_enrichment` |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Random mean | `0.8440` | `0.6359` | `0.1935` | `0.1055` | `0.0001` |
-| Mono-nucleotide Ridge | `0.4841` | `0.4404` | `0.2435` | `0.1358` | `0.0354` |
-| Di-nucleotide Ridge | `0.4471` | `0.4248` | `0.2715` | `0.1529` | `0.0551` |
-| Validated-NN diagnostic | `1.5687` | `1.4543` | `0.5706` | `0.3194` | `0.2659` |
+| Method or diagnostic | `best_score` | `best_k_mean` | `batch_mean` | `normalized_enrichment` |
+| --- | ---: | ---: | ---: | ---: |
+| Full-domain random mean | `0.7301` | `0.5371` | `0.02536` | `0.00008` |
+| Full-domain random 10th--90th percentile | `0.5081--1.0017` | `0.4332--0.6563` | `0.00072--0.05009` | `-0.01545--0.01567` |
+| Random unseen mean | `0.8440` | `0.6359` | `0.1934` | `0.1060` |
+| Mono-nucleotide Ridge | `0.4841` | `0.4404` | `0.2435` | `0.1376` |
+| Di-nucleotide Ridge | `0.4471` | `0.4248` | `0.2715` | `0.1552` |
+| Validated-NN diagnostic | `1.5687` | `1.4543` | `0.5706` | `0.3437` |
+| Measurement-oracle upper bound | `1.9984` | `1.9123` | `1.6119` | `1.0000` |
 
-The simple sequence models improve full-batch metrics while random batches
-often contain an extreme single count-derived score. Across replicate splits,
-the correlation of method rankings was `0.938` for both `batch_mean` and
-`normalized_enrichment`, compared with `0.554` for `best_score` and `0.731`
-for `best_k_mean`. The normalized form is the default because it has random
-expectation zero and top-128-pool value one, while preserving the same ranking
-as `batch_mean` for this frozen pool.
+The measurement-oracle row selects the evaluator's true top 128 and is not an
+Agent-available method. The simple sequence models improve full-batch metrics
+while random batches often contain an extreme single count-derived score.
+Across replicate splits, the correlation of method rankings was `0.938` for
+both `batch_mean` and `normalized_enrichment`, compared with `0.554` for
+`best_score` and `0.731` for `best_k_mean`. The normalized form is the default
+because it has full-domain random expectation zero and top-128-domain value one,
+while preserving the same ranking as `batch_mean` for this frozen landscape.
+Random unseen reaches about `0.106` by using the known lower-tail split alone;
+improvement beyond it reflects additional modeling within the unobserved half.
 
 Useful method families include count-aware posterior or uncertainty estimates,
 position and k-mer sequence features, motif and interaction models, and
-ranking models that select from the provided candidate IDs. Methods should not
+generative or enumerative search over the known 10-mer domain. Methods should not
 fit a clipped per-row ddG as though it were an exact affinity label, and must
-not use hidden-pool labels to choose the final batch.
+not use hidden labels to choose the final batch.
 
 ## Rebuild
 
@@ -212,8 +237,8 @@ coverage, shared-library semantics, and the generated artifact checksum.
 
 ## Scope And Limitations
 
-- This setting evaluates selection and ranking within a measured finite pool;
-  it does not extrapolate to arbitrary sequence lengths or alphabets.
+- This setting evaluates free candidate generation over the exhaustively measured
+  DNA 10-mer domain; it does not extrapolate to other sequence lengths or alphabets.
 - The derived Objective is more robust to zero counts and replicate depth than
   a clipped single-row ddG lookup, but it remains assay-grounded rather than
   an exact biochemical oracle.

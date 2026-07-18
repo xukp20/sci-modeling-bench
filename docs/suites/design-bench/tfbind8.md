@@ -13,6 +13,18 @@ SciModelingBench. It combines:
 The package does not provide an optimization agent, benchmark runner,
 query-budget enforcement, or process isolation.
 
+## At a Glance
+
+| Property | Default setting |
+|---|---|
+| Task | `TFBind8BlackBoxOptimizationTask` |
+| Task ID | `design-bench/tfbind8-black-box-optimization-v2` |
+| Hub config / split | `tfbind8` / `six6_ref_r1` |
+| Agent input | Lowest 50% of sequences with measured labels |
+| Submission | Exactly 128 distinct valid DNA 8-mers |
+| Objective | Exact lookup over the complete measured landscape |
+| Primary metric | `best_k_mean` |
+
 ## End-to-End Use
 
 ```python
@@ -298,10 +310,10 @@ domain. The table reports the random mean and its 10th--90th percentile range;
 the oracle-rerank row uses the same random sets but orders each set by trusted
 score, so it diagnoses ordering rather than a usable method.
 
-| Audit submission | `best_score` | `best_k_mean` | `batch_mean` | `global_ndcg` | `reranking_ndcg` |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Random ordered | `0.9384` (`0.8871--0.9820`) | `0.8798` (`0.8357--0.9220`) | `0.4638` (`0.4443--0.4836`) | `0.4714` (`0.4492--0.4940`) | `0.8778` (`0.8571--0.8991`) |
-| Oracle-rerank of the same sets | `0.9384` | `0.8798` | `0.4638` | `0.5370` (`0.5154--0.5585`) | `1.0000` |
+| Audit submission | `best_score` | `best_k_mean` | `batch_mean` | `normalized_enrichment` | `global_ndcg` | `reranking_ndcg` |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Random ordered | `0.9384` (`0.8871--0.9820`) | `0.8798` (`0.8357--0.9220`) | `0.4638` (`0.4443--0.4836`) | `0.0002` (`-0.0377--0.0383`) | `0.4714` (`0.4492--0.4940`) | `0.8778` (`0.8571--0.8991`) |
+| Oracle-rerank of the same sets | `0.9384` | `0.8798` | `0.4638` | `0.0002` | `0.5370` (`0.5154--0.5585`) | `1.0000` |
 
 Random `best_score` has median `0.9445` and reaches `0.9820` at the 90th
 percentile, so a single high-scoring sequence is too easily dominated by

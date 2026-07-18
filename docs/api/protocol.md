@@ -1,15 +1,53 @@
 # Protocol API
 
-> **Status:** Experimental. The base class defines only the boundary needed by
-> the first concrete benchmark.
+> **Status:** Experimental. Protocol outputs use a uniform disclosure manifest,
+> while each concrete Protocol retains its domain-specific data type.
 
-A `Protocol` constructs the information made visible to an agent from a
-complete `Dataset`. It is the data-disclosure boundary between trusted benchmark
-state and agent input.
+A `Protocol` constructs the information made visible to an Agent from a
+complete trusted `Dataset`. It is the disclosure boundary between canonical
+benchmark state and Agent input.
+
+## AgentInputBundle
+
+Every `Protocol.build_input()` returns an `AgentInputBundle`:
+
+```python
+bundle = protocol.build_input(dataset)
+
+agent_data = bundle.data
+manifest = bundle.manifest
+```
+
+`bundle.data` belongs to the concrete Protocol. It can be a Hugging Face
+`Dataset` or a typed object containing multiple tables and scientific constants.
+`bundle.manifest` always has the same public `AgentInputManifest` schema.
+
+The manifest describes exactly the disclosed views, rather than copying the
+canonical Dataset manifest. It contains:
+
+- public Dataset identity, version, license, source, citation, repository,
+  resolved revision, config, and selected split;
+- the stable `protocol_id` and, for `Task.build_input()`, the concrete `task_id`;
+- every visible table name, disclosure role (`observations`, `candidates`, or
+  `auxiliary`), description, row count, and column in physical order;
+- each visible field's semantic role, description, physical type, optional
+  unit, required flag, constraints, and canonical source field when applicable;
+- public split attributes and Protocol-disclosed scientific constants such as
+  element order, policy layout, or a reference sequence.
+
+Hidden canonical columns are not copied into the manifest. A Protocol that
+derives or renames a visible column must explicitly declare its semantics.
+Building the input fails if any visible table column lacks a canonical
+`FieldSpec` or a Protocol-specific `AgentInputField` override.
+
+```python
+print(manifest.model_dump_json(indent=2))
+```
+
+An external harness can materialize this JSON next to serialized tables. The
+package itself does not prescribe a workspace path or physical file format.
 
 ## Using a Protocol
-
-Concrete suites define the selection or transformation they apply:
 
 ```python
 from sci_modeling_bench.suites.design_bench import (
@@ -18,17 +56,22 @@ from sci_modeling_bench.suites.design_bench import (
 )
 
 dataset = TFBind8Dataset.from_hub(revision="full-commit-sha")
-protocol = TFBind8DesignBenchProtocol()
-agent_input = protocol.build_input(dataset)
+bundle = TFBind8DesignBenchProtocol().build_input(dataset)
+
+observations = bundle.data
+assert bundle.manifest.views[0].name == "observations"
 ```
 
-The output type belongs to the concrete Protocol. The TFBind8 implementation
-returns a standard Hugging Face `Dataset`; another Protocol can return any typed
-Python object appropriate for its benchmark.
+Calling the corresponding Task binds the same manifest to a Task identity:
+
+```python
+bundle = task.build_input()
+print(bundle.manifest.task_id)
+```
 
 ## Public Contract
 
-`Protocol` is generic in its output type and defines one abstract method:
+`Protocol` is generic in its data type:
 
 ```python
 def build_input(
@@ -36,26 +79,25 @@ def build_input(
     dataset: Dataset,
     *,
     split: str | None = None,
-) -> ProtocolOutputT:
+) -> AgentInputBundle[ProtocolDataT]:
     ...
 ```
 
-A concrete Protocol should declare a stable `protocol_id`, validate its own
-configuration and Dataset compatibility, and implement `build_input()` without
-mutating the Dataset. The base class does not enforce an output format or
-automatically hide columns; those are concrete Protocol responsibilities.
-
-The optional `split` selects a published Dataset split when the implementation
-supports it. It does not create a new split or imply train/test semantics.
+A concrete Protocol declares a stable `protocol_id`, validates its
+configuration and Dataset compatibility, constructs independently owned or
+immutable visible data, and pairs it with a disclosure-scoped manifest. The
+optional `split` selects a published Dataset split; it does not imply an
+Agent-visible train/test partition.
 
 ## Implementing a Protocol
 
-This example exposes only declared input columns from one split:
+The public helpers reuse canonical field semantics where possible:
 
 ```python
 from datasets import Dataset as HFDataset
 
-from sci_modeling_bench import Dataset, Protocol
+from sci_modeling_bench import AgentInputBundle, Dataset, Protocol
+from sci_modeling_bench.protocol import agent_input_manifest, agent_table_view
 
 
 class InputsOnlyProtocol(Protocol[HFDataset]):
@@ -66,43 +108,53 @@ class InputsOnlyProtocol(Protocol[HFDataset]):
         dataset: Dataset,
         *,
         split: str | None = None,
-    ) -> HFDataset:
-        observations = dataset.load(split)
+    ) -> AgentInputBundle[HFDataset]:
+        selected_split = split or dataset.default_split
+        observations = dataset.load(selected_split)
         input_fields = [field.name for field in dataset.schema.inputs]
-        return observations.select_columns(input_fields)
+        visible = observations.select_columns(input_fields)
+        view = agent_table_view(
+            dataset,
+            visible,
+            name="observations",
+            role="observations",
+            description="Agent-visible input fields.",
+        )
+        return AgentInputBundle(
+            data=visible,
+            manifest=agent_input_manifest(
+                dataset,
+                protocol_id=self.protocol_id,
+                split=selected_split,
+                views=(view,),
+            ),
+        )
 ```
 
-A concrete Protocol may use Hugging Face `select`, `filter`, or `map`, or build
-a different immutable or independently owned output. It should make these
-behaviors explicit:
+Use `agent_input_field()` overrides for renamed, flattened, or derived columns.
+Use `AgentInputContext` for constants whose interpretation applies across a
+whole view, such as a vector's element order. Protocol configuration should
+fail before returning partial data or an incomplete manifest.
 
-- required Dataset ID, schema fields, and supported splits;
-- fields visible to the agent;
-- selection thresholds and whether boundaries are inclusive;
-- ordering, tie handling, randomness, and seed behavior;
-- output type and any copies or materialization performed;
-- failures reported as `ProtocolError`.
+## Canonical and Agent Manifests
 
-Protocol configuration should fail before returning partial agent input.
+The repository `DatasetManifest` describes the complete canonical Dataset.
+`AgentInputManifest` describes only one Protocol disclosure. They are different
+objects because Protocols may filter rows and columns, expand nested records,
+construct several views, or intentionally hide partition annotations.
 
-## Protocols and Black-Box Isolation
+Forwarding the canonical manifest unchanged could advertise hidden target or
+context fields that are absent from Agent data. Harnesses should serialize the
+`AgentInputManifest`, not expose trusted repository manifests or Dataset
+handles.
 
-`build_input()` constructs the intended visible object but does not isolate the
-agent process. The external harness must ensure the agent cannot access the
-complete Dataset, hidden target columns, Objective internals, credentials, or
-cached repository artifacts.
+## Isolation Boundary
 
-The harness remains responsible for query budgets, feedback timing, state, and
-deciding which Task evaluation fields are exposed to the Agent. Submission and
-metric semantics belong to a [Task](task.md), not Protocol configuration.
+An `AgentInputBundle` defines intended visibility but is not a process-security
+boundary. The external harness must isolate the complete Dataset, Objectives,
+credentials, caches, repository checkout, and network. It also owns query
+budgets, feedback timing, and the subset of trusted evaluation fields returned
+to the Agent.
 
-## Protocols Are Not Dataset Splits
-
-Dataset splits preserve published observation identity and shared scientific
-metadata. Protocol output represents a benchmark-specific view. Keeping these
-separate avoids publishing a second copy of canonical data for every selection
-policy and makes disclosure logic reviewable in code.
-
-See [TFBind8](../suites/design-bench/tfbind8.md) for the first implementation,
-which deterministically exposes the bottom target percentile of the canonical
-landscape as offline optimization data.
+Dataset splits preserve canonical observation identity. Protocol outputs are
+Task-specific views and should not be published as duplicate canonical splits.

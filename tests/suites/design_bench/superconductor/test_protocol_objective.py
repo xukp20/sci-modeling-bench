@@ -11,7 +11,7 @@ def test_protocol_exposes_raw_visible_observations_and_hidden_candidates(
 ) -> None:
     protocol = SuperconductorMeasuredPoolProtocol(visible_max_percentile=50.0)
 
-    agent_input = protocol.build_input(tiny_superconductor_dataset)
+    agent_input = protocol.build_input(tiny_superconductor_dataset).data
     pool = protocol.candidate_pool(tiny_superconductor_dataset)
 
     assert len(agent_input.observations) == 5
@@ -28,7 +28,7 @@ def test_protocol_can_expose_published_descriptor_features(
     agent_input = SuperconductorMeasuredPoolProtocol(
         visible_max_percentile=50.0,
         include_descriptors=True,
-    ).build_input(tiny_superconductor_dataset)
+    ).build_input(tiny_superconductor_dataset).data
 
     assert "descriptor_features" in agent_input.observations.column_names
     assert "descriptor_features" in agent_input.candidates.column_names

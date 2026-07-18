@@ -9,7 +9,7 @@ def test_tiny_dataset_and_candidate_rows_validate(tiny_utr_mrl_dataset) -> None:
     report = tiny_utr_mrl_dataset.validate_dataset()
     candidate = UTRMRLCompositionalProtocol().build_input(
         tiny_utr_mrl_dataset
-    ).candidates[0]
+    ).data.candidates[0]
 
     assert report.valid
     assert tiny_utr_mrl_dataset.validate_inputs(candidate).valid
@@ -28,7 +28,7 @@ def test_published_dataset_and_partition_are_frozen(
 ) -> None:
     protocol = UTRMRLCompositionalProtocol()
     data = published_utr_mrl_dataset.load()
-    agent_input = protocol.build_input(published_utr_mrl_dataset)
+    agent_input = protocol.build_input(published_utr_mrl_dataset).data
     pool = protocol.candidate_pool(published_utr_mrl_dataset)
 
     assert len(data) == 318_468

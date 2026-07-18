@@ -14,7 +14,7 @@ def test_task_scores_ordered_candidate_selection(tiny_utr_mrl_dataset) -> None:
         submission_size=3,
     )
     by_sequence = {
-        row["sequence"]: row for row in task.build_input().candidates
+        row["sequence"]: row for row in task.build_input().data.candidates
     }
     pool = task.protocol.candidate_pool(tiny_utr_mrl_dataset)
     ranked = sorted(pool, key=lambda row: row["mean_ribosome_load"], reverse=True)
@@ -38,17 +38,17 @@ def test_task_rejects_visible_or_duplicate_candidates(tiny_utr_mrl_dataset) -> N
         tiny_utr_mrl_dataset,
         submission_size=3,
     )
-    candidate = task.build_input().candidates[0]
+    candidate = task.build_input().data.candidates[0]
 
     outside = task.evaluate(
         [
             {"sequence": NO_UAUG_STRONG},
             candidate,
-            task.build_input().candidates[1],
+            task.build_input().data.candidates[1],
         ]
     )
     duplicate = task.evaluate(
-        [candidate, candidate, task.build_input().candidates[1]]
+        [candidate, candidate, task.build_input().data.candidates[1]]
     )
 
     assert not outside.evaluation_eligible

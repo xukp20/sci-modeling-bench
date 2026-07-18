@@ -10,7 +10,12 @@ from datasets import Dataset as HFDataset
 
 from sci_modeling_bench.dataset import Dataset
 from sci_modeling_bench.exceptions import ProtocolError
-from sci_modeling_bench.protocol import Protocol
+from sci_modeling_bench.protocol import (
+    AgentInputBundle,
+    Protocol,
+    agent_input_manifest,
+    agent_table_view,
+)
 from sci_modeling_bench.suites.design_bench.tfbind8.dataset import (
     TFBIND8_DEFAULT_SPLIT,
 )
@@ -43,7 +48,7 @@ class TFBind8DesignBenchProtocol(Protocol[HFDataset]):
         dataset: Dataset,
         *,
         split: str | None = None,
-    ) -> HFDataset:
+    ) -> AgentInputBundle[HFDataset]:
         if dataset.metadata.dataset_id != _TFBIND8_DATASET_ID:
             raise ProtocolError(
                 f"TFBind8DesignBenchProtocol requires dataset_id "
@@ -95,6 +100,25 @@ class TFBind8DesignBenchProtocol(Protocol[HFDataset]):
             np.logical_and(values >= minimum, values <= maximum)
         ).tolist()
 
-        return observations.select(selected_indices).select_columns(
+        visible = observations.select(selected_indices).select_columns(
             ["sequence", self.target_field]
+        )
+        view = agent_table_view(
+            dataset,
+            visible,
+            name="observations",
+            role="observations",
+            description=(
+                "Agent-visible TFBind8 sequences and measured scores selected by "
+                "the configured target-percentile interval."
+            ),
+        )
+        return AgentInputBundle(
+            data=visible,
+            manifest=agent_input_manifest(
+                dataset,
+                protocol_id=self.protocol_id,
+                split=selected_split,
+                views=(view,),
+            ),
         )

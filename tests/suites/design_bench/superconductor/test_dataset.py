@@ -13,7 +13,7 @@ def test_published_dataset_and_default_partition_are_frozen(
 
     data = published_superconductor_dataset.load()
     protocol = SuperconductorMeasuredPoolProtocol()
-    agent_input = protocol.build_input(published_superconductor_dataset)
+    agent_input = protocol.build_input(published_superconductor_dataset).data
     pool = protocol.candidate_pool(published_superconductor_dataset)
 
     assert len(data) == 15_164

@@ -25,9 +25,15 @@ class Task(ABC, Generic[AgentInputT, SubmissionT, EvaluationT]):
     dataset: Dataset
     protocol: Protocol[AgentInputT]
 
-    def build_input(self) -> AgentInputT: ...
+    def build_input(self) -> AgentInputBundle[AgentInputT]: ...
     def evaluate(self, submission: SubmissionT) -> EvaluationT: ...
 ```
+
+`build_input()` binds the Protocol's disclosure manifest to the concrete
+`task_id`. Consumers read domain-specific tables from `bundle.data` and the
+uniform machine-readable description from `bundle.manifest`. Submission and
+metric semantics remain Task documentation rather than being inferred from the
+input tables.
 
 ## Submission Evaluation
 

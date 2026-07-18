@@ -158,13 +158,18 @@ from sci_modeling_bench.suites.design_bench import (
     HopperControllerLowerScoreProtocol,
 )
 
-agent_input = HopperControllerLowerScoreProtocol().build_input(dataset)
+bundle = HopperControllerLowerScoreProtocol().build_input(dataset)
+agent_input = bundle.data
 observations = agent_input.observations
 candidates = agent_input.candidates
 
 print(len(observations), len(candidates))
 # 1920 1280
 ```
+
+The bundle manifest describes every rollout-array column and repeats the policy
+layer widths, flattened parameter order, activation, action semantics,
+environment, rollout count, and target aggregation as structured context.
 
 `HopperControllerAgentInput` also states the architecture, parameter order,
 activation, action distribution, action clipping, rollout count, and target
@@ -203,7 +208,8 @@ from sci_modeling_bench.suites.design_bench import (
 )
 
 task = HopperControllerCandidatePoolRankingTask(dataset)
-agent_input = task.build_input()
+bundle = task.build_input()
+agent_input = bundle.data
 
 submission = list(agent_input.candidates)[:32]
 evaluation = task.evaluate(submission)

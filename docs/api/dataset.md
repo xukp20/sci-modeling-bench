@@ -151,6 +151,11 @@ Example field declarations in a config manifest:
 Hugging Face `Features` remain the authority for physical dtype and shape.
 Field specifications add semantic roles and scientific constraints.
 
+This canonical schema may include fields that a task-specific Protocol hides.
+Do not forward it unchanged to an Agent. `Protocol.build_input()` returns a
+separate `AgentInputManifest` filtered to the actual visible views and fields;
+see the [Protocol API](protocol.md).
+
 ## Validation
 
 ```python

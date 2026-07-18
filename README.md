@@ -94,7 +94,11 @@ from sci_modeling_bench.suites.design_bench import (
 )
 
 task = TFBind8BlackBoxOptimizationTask.from_hub()
-offline_data = task.build_input()
+agent_input = task.build_input()
+offline_data = agent_input.data
+
+# A uniform, disclosure-scoped description of the visible table.
+print(agent_input.manifest.model_dump_json(indent=2))
 
 submission = [
     {"sequence": sequence}

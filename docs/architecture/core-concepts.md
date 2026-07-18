@@ -30,8 +30,10 @@ flowchart LR
 ```
 
 The trusted side owns the `Task` and its complete `Dataset`, `Protocol`, and
-optional `Objective`. The agent should receive only the object returned by
-`Task.build_input()` and the feedback allowed by the external harness.
+optional `Objective`. The Agent should receive only the `AgentInputBundle`
+returned by `Task.build_input()` and feedback allowed by the external harness.
+The bundle pairs domain-specific data with a uniform manifest describing
+exactly the fields and scientific constants disclosed by the Protocol.
 
 ## Core Concepts
 
@@ -39,7 +41,7 @@ optional `Objective`. The agent should receive only the object returned by
 |---|---|---|
 | `Dataset` | Load a pinned observation set with identity, provenance, semantic field roles, validation, split metadata, and optional knowledge | Task-specific data selection, model preprocessing, candidate evaluation, metrics, or agent workflows |
 | `Objective` | Map a valid candidate to declared persisted or derived outputs on the trusted side | Agent-visible data, query budgets, submission handling, or ranking metrics |
-| `Protocol` | Construct the data or other information visible to an agent from a complete Dataset | Evaluating candidates, tracking interaction state, or enforcing a query budget |
+| `Protocol` | Construct Agent-visible data and a disclosure-scoped manifest from a complete Dataset | Evaluating candidates, tracking interaction state, or enforcing a query budget |
 | `Task` | Bind a Dataset and Protocol to a typed submission contract and evaluation result | Agent execution, isolation, query budgets, or a universal Objective assumption |
 | External harness | Run the agent and enforce interaction policy, budgets, isolation, and Task-result disclosure | Not provided by the package |
 
@@ -96,9 +98,11 @@ commit SHA. The collection index, config manifest, data files, and knowledge
 resources are then read from that same resolved revision. `resolved_revision`
 records the identity used for every subsequent access.
 
-Published data and manifests are immutable inputs from the framework's point of
-view. Protocols return ordinary data objects without mutating the Dataset, and
-Objectives validate candidates against the Dataset before evaluation.
+Published data and canonical manifests are immutable inputs from the
+framework's point of view. Protocols return `AgentInputBundle` objects without
+mutating the Dataset. Their Agent manifests describe only disclosed views and
+must not be confused with the complete repository manifest. Objectives
+validate candidates against the trusted Dataset before evaluation.
 
 ## Implemented Task Families
 

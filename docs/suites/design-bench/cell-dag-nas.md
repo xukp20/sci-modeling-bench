@@ -38,7 +38,8 @@ from sci_modeling_bench.suites.design_bench import (
 task = CellDAGNASBlackBoxOptimizationTask.from_hub(
     revision="1c223e204fa5f88c8a0c55bd9a66865fdb8bcafa",
 )
-offline_data = task.build_input()
+agent_input = task.build_input()
+offline_data = agent_input.data
 
 # Each architecture is a valid 31-token Design-Bench encoding.
 submission = [
@@ -52,6 +53,10 @@ print(evaluation.metrics["best_score"])
 print(evaluation.metrics["best_k_mean_regret"])
 print(evaluation.candidates[0].validation)
 ```
+
+`agent_input.manifest` describes the visible `architecture` and
+`test_accuracies` columns, their physical array types, and the pinned Dataset
+identity without exposing canonical hashes or precomputed means.
 
 The submission must contain exactly 128 canonical-unique, legal, in-table
 graphs. A malformed, duplicate, or unscorable candidate makes the submission

@@ -5,6 +5,7 @@ from __future__ import annotations
 from datasets import Dataset as HFDataset
 
 from sci_modeling_bench.objective import Candidate
+from sci_modeling_bench.protocol import AgentInputBundle
 from sci_modeling_bench.task import BlackBoxOptimizationTask
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4.dataset import (
     DEFAULT_TFBIND10_PHO4_REPO_ID,
@@ -55,13 +56,17 @@ class TFBind10Pho4BlackBoxOptimizationTask(
     def _candidate_identity(self, candidate: Candidate) -> str:
         return str(candidate["sequence"])
 
-    def build_input(self) -> HFDataset:
+    def build_input(self) -> AgentInputBundle[HFDataset]:
         """Build the visible rows without recomputing the Objective landscape."""
 
-        return self._tfbind10_protocol.build_input(
+        bundle = self._tfbind10_protocol.build_input(
             self.dataset,
             split=self.objective.split,
             landscape=self._landscape,
+        )
+        return AgentInputBundle(
+            data=bundle.data,
+            manifest=bundle.manifest.for_task(self.task_id),
         )
 
     @classmethod

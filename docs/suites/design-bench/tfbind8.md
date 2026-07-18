@@ -36,8 +36,9 @@ REVISION = "2ee2856f4255bb6a64c11b6c2660a6f41418e654"
 
 task = TFBind8BlackBoxOptimizationTask.from_hub(revision=REVISION)
 
-# The external agent receives only this object.
-offline_data = task.build_input()
+# The external agent receives only this bundle.
+agent_input = task.build_input()
+offline_data = agent_input.data
 
 # The final submission must contain exactly 128 distinct candidates, ordered
 # from the Agent's highest to lowest predicted quality.
@@ -213,9 +214,10 @@ silently applied by `TFBind8Dataset`.
 ## Documentation and Agent Visibility
 
 This page is package and benchmark-maintainer documentation. SciModelingBench
-does not inject it into a Task input. The default Agent-visible object returned
-by `task.build_input()` contains only `sequence` and `normalized_e_score` for
-the Protocol-selected offline observations. A runner may add an explicit task
+does not inject it into a Task input. The default `AgentInputBundle.data`
+contains only `sequence` and `normalized_e_score` for the Protocol-selected
+offline observations, while `AgentInputBundle.manifest` describes those two
+visible fields. A runner may add an explicit task
 statement, but should not expose maintainer analysis or optional modeling notes
 unless that is part of the declared setting.
 
@@ -278,7 +280,7 @@ task = TFBind8BlackBoxOptimizationTask.from_hub(
     submission_size=128,
     primary_metric="best_k_mean",
 )
-visible = task.build_input()
+visible = task.build_input().data
 submission = [
     {"sequence": sequence}
     for sequence in visible["sequence"][:128]
@@ -337,15 +339,17 @@ preprocessing or extra information supplied by the default Protocol.
 candidates at or below the 50th percentile of `normalized_e_score`:
 
 ```python
-offline_data = TFBind8DesignBenchProtocol().build_input(dataset)
+agent_input = TFBind8DesignBenchProtocol().build_input(dataset)
+offline_data = agent_input.data
 
 print(offline_data.column_names)
 # ["sequence", "normalized_e_score"]
 ```
 
-The return value is an ordinary Hugging Face `Dataset`, not a new
+The bundle's `data` is an ordinary Hugging Face `Dataset`, not a new
 SciModelingBench Dataset. It contains only `sequence` and the selected target
-field.
+field. Its `manifest` supplies the public Dataset identity and complete visible
+field semantics without forwarding hidden canonical columns.
 
 | Option | Default | Meaning |
 |---|---:|---|
@@ -367,7 +371,7 @@ protocol = TFBind8DesignBenchProtocol(
     max_percentile=100.0,
     target_field="e_score",
 )
-offline_data = protocol.build_input(dataset, split="six6_ref_r1")
+offline_data = protocol.build_input(dataset, split="six6_ref_r1").data
 ```
 
 See the [Protocol API](../../api/protocol.md) for the common visibility

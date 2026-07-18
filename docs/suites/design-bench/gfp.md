@@ -28,7 +28,8 @@ from sci_modeling_bench.suites.design_bench import (
 task = GFPCandidatePoolRankingTask.from_hub(
     revision="836f17c81c5cc365d1bf43af3397cd4ed87cb587"
 )
-agent_input = task.build_input()
+bundle = task.build_input()
+agent_input = bundle.data
 
 print(len(agent_input.protein_observations))
 print(len(agent_input.candidates))
@@ -42,11 +43,16 @@ evaluation = task.evaluate(submission)
 
 print(evaluation.primary_metric, evaluation.score)
 print(evaluation.metrics)
+print(bundle.manifest.model_dump_json(indent=2))
 ```
 
 The example preserves the Dataset order and is not a modeling baseline.
 Official submissions should contain 128 distinct candidate sequences ordered
 from predicted brightest to predicted dimmest.
+
+The manifest describes all four visible tables separately and publishes the
+avGFP reference sequence as structured context. Candidate fields do not include
+brightness, barcode, coverage, or nucleotide-measurement semantics.
 
 ## Scientific Source
 

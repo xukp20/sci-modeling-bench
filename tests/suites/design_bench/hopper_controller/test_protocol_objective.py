@@ -14,7 +14,7 @@ def test_protocol_exposes_all_visible_rollouts_and_hides_candidate_labels(
 ) -> None:
     protocol = HopperControllerLowerScoreProtocol(visible_fraction=0.5)
 
-    agent_input = protocol.build_input(tiny_hopper_controller_dataset)
+    agent_input = protocol.build_input(tiny_hopper_controller_dataset).data
     pool = protocol.candidate_pool(tiny_hopper_controller_dataset)
 
     assert len(agent_input.observations) == 5

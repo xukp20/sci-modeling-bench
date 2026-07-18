@@ -24,7 +24,7 @@ def test_default_protocol_selects_low_40_percent_without_mean(
 ) -> None:
     visible = CellDAGNASDesignBenchProtocol().build_input(
         tiny_cell_dag_nas_dataset
-    )
+    ).data
     assert len(visible) == 1
     assert visible.column_names == ["architecture", "test_accuracies"]
     assert visible[0]["architecture"] == A
@@ -37,7 +37,7 @@ def test_published_protocol_has_frozen_visible_counts(
 ) -> None:
     visible = CellDAGNASDesignBenchProtocol().build_input(
         published_cell_dag_nas_dataset
-    )
+    ).data
     assert published_cell_dag_nas_dataset.resolved_revision == (
         "1c223e204fa5f88c8a0c55bd9a66865fdb8bcafa"
     )

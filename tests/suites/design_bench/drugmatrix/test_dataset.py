@@ -34,7 +34,7 @@ def test_published_dataset_and_all_endpoint_tasks(
             endpoint=endpoint,
             submission_size=64,
         )
-        candidates = task.build_input().candidates
+        candidates = task.build_input().data.candidates
         evaluation = task.evaluate(
             [
                 {"condition_id": identity}

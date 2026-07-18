@@ -64,7 +64,7 @@ def test_task_reuses_objective_scores_when_building_input(
         fail_if_recomputed,
     )
 
-    agent_input = task.build_input()
+    agent_input = task.build_input().data
 
     assert len(agent_input) == 16
     assert set(agent_input["sequence"]) == set(SEQUENCES[:4])

@@ -9,7 +9,12 @@ from datasets import Dataset as HFDataset
 
 from sci_modeling_bench.dataset import Dataset
 from sci_modeling_bench.exceptions import ProtocolError
-from sci_modeling_bench.protocol import Protocol
+from sci_modeling_bench.protocol import (
+    AgentInputBundle,
+    Protocol,
+    agent_input_manifest,
+    agent_table_view,
+)
 from sci_modeling_bench.suites.design_bench.utr_mrl.dataset import (
     UTR_MRL_DEFAULT_SPLIT,
 )
@@ -36,14 +41,45 @@ class UTRMRLCompositionalProtocol(Protocol[UTRMRLAgentInput]):
         dataset: Dataset,
         *,
         split: str | None = None,
-    ) -> UTRMRLAgentInput:
+    ) -> AgentInputBundle[UTRMRLAgentInput]:
         measurements = self._load_measurements(dataset, split)
         visible, candidates = self.partition(measurements)
-        return UTRMRLAgentInput(
+        data = UTRMRLAgentInput(
             observations=measurements.select(visible).select_columns(
                 ["sequence", "mean_ribosome_load"]
             ),
             candidates=measurements.select(candidates).select_columns(["sequence"]),
+        )
+        selected_split = split or UTR_MRL_DEFAULT_SPLIT
+        return AgentInputBundle(
+            data=data,
+            manifest=agent_input_manifest(
+                dataset,
+                protocol_id=self.protocol_id,
+                split=selected_split,
+                views=(
+                    agent_table_view(
+                        dataset,
+                        data.observations,
+                        name="observations",
+                        role="observations",
+                        description=(
+                            "Measured 50-nucleotide UTR observations from the three "
+                            "Agent-visible uAUG and Kozak combinations."
+                        ),
+                    ),
+                    agent_table_view(
+                        dataset,
+                        data.candidates,
+                        name="candidates",
+                        role="candidates",
+                        description=(
+                            "Label-hidden measured 50-nucleotide UTR candidates from "
+                            "the held-out biological combination."
+                        ),
+                    ),
+                ),
+            ),
         )
 
     def candidate_pool(

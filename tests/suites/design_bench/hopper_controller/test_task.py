@@ -41,8 +41,8 @@ def test_task_rejects_policy_outside_candidate_pool(
     tiny_hopper_controller_dataset,
 ) -> None:
     task = _task(tiny_hopper_controller_dataset)
-    visible = task.build_input().observations[0]
-    candidates = list(task.build_input().candidates)
+    visible = task.build_input().data.observations[0]
+    candidates = list(task.build_input().data.candidates)
 
     evaluation = task.evaluate(
         [{"policy_weights": visible["policy_weights"]}, *candidates[:2]]
@@ -58,7 +58,7 @@ def test_task_rejects_duplicate_policy_and_accepts_ignored_suffix(
     tiny_hopper_controller_dataset,
 ) -> None:
     task = _task(tiny_hopper_controller_dataset)
-    candidates = list(task.build_input().candidates)
+    candidates = list(task.build_input().data.candidates)
 
     duplicate = task.evaluate([candidates[0], candidates[0], candidates[1]])
     valid = task.evaluate(candidates[:4])
@@ -76,7 +76,7 @@ def test_task_identity_uses_canonical_policy_bytes(
     tiny_hopper_controller_dataset,
 ) -> None:
     task = _task(tiny_hopper_controller_dataset)
-    candidate = task.build_input().candidates[0]
+    candidate = task.build_input().data.candidates[0]
 
     assert task._candidate_identity(candidate) == policy_identity(
         candidate["policy_weights"]

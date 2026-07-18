@@ -11,7 +11,12 @@ from datasets import Dataset as HFDataset
 
 from sci_modeling_bench.dataset import Dataset
 from sci_modeling_bench.exceptions import ProtocolError
-from sci_modeling_bench.protocol import Protocol
+from sci_modeling_bench.protocol import (
+    AgentInputBundle,
+    Protocol,
+    agent_input_manifest,
+    agent_table_view,
+)
 from sci_modeling_bench.suites.design_bench.cell_dag_nas.dataset import (
     CELL_DAG_NAS_DEFAULT_SPLIT,
 )
@@ -35,7 +40,7 @@ class CellDAGNASDesignBenchProtocol(Protocol[HFDataset]):
         dataset: Dataset,
         *,
         split: str | None = None,
-    ) -> HFDataset:
+    ) -> AgentInputBundle[HFDataset]:
         if dataset.metadata.dataset_id != _DATASET_ID:
             raise ProtocolError(
                 f"CellDAGNASDesignBenchProtocol requires dataset_id {_DATASET_ID!r}, "
@@ -79,4 +84,23 @@ class CellDAGNASDesignBenchProtocol(Protocol[HFDataset]):
             ],
             names=["architecture", "test_accuracies"],
         )
-        return HFDataset(agent_table)
+        visible = HFDataset(agent_table)
+        view = agent_table_view(
+            dataset,
+            visible,
+            name="observations",
+            role="observations",
+            description=(
+                "Agent-visible NASBench-101 architecture aliases and their three "
+                "raw 108-epoch test-accuracy repeats."
+            ),
+        )
+        return AgentInputBundle(
+            data=visible,
+            manifest=agent_input_manifest(
+                dataset,
+                protocol_id=self.protocol_id,
+                split=selected_split,
+                views=(view,),
+            ),
+        )

@@ -15,7 +15,7 @@ from sci_modeling_bench.suites.design_bench.drugmatrix import (
 def test_protocol_hides_candidate_treatment_rows(tiny_drugmatrix_dataset) -> None:
     protocol = DrugMatrixMeasuredPoolProtocol()
 
-    agent_input = protocol.build_input(tiny_drugmatrix_dataset)
+    agent_input = protocol.build_input(tiny_drugmatrix_dataset).data
     pool = protocol.candidate_pool(tiny_drugmatrix_dataset)
 
     assert len(pool) == 4

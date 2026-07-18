@@ -43,7 +43,7 @@ def test_task_accepts_agent_candidate_rows_and_ignores_suffix(
     tiny_gfp_dataset,
 ) -> None:
     task = _task(tiny_gfp_dataset)
-    candidates = list(task.build_input().candidates)
+    candidates = list(task.build_input().data.candidates)
 
     evaluation = task.evaluate(candidates[:4])
 
@@ -54,8 +54,8 @@ def test_task_accepts_agent_candidate_rows_and_ignores_suffix(
 
 def test_task_rejects_visible_or_repeated_sequence(tiny_gfp_dataset) -> None:
     task = _task(tiny_gfp_dataset)
-    visible = task.build_input().protein_observations[0]["sequence"]
-    candidates = list(task.build_input().candidates)
+    visible = task.build_input().data.protein_observations[0]["sequence"]
+    candidates = list(task.build_input().data.candidates)
 
     outside = task.evaluate(
         [{"sequence": visible}, candidates[0], candidates[1]]

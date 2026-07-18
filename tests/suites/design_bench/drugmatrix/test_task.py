@@ -45,7 +45,7 @@ def test_task_rejects_unknown_and_duplicate_conditions(
         endpoint="mchc",
         submission_size=3,
     )
-    candidates = list(task.build_input().candidates)
+    candidates = list(task.build_input().data.candidates)
 
     outside = task.evaluate(
         [

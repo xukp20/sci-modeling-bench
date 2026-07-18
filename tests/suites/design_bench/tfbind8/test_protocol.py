@@ -16,7 +16,7 @@ from sci_modeling_bench.suites.design_bench.tfbind8 import (
 def test_default_protocol_exposes_canonical_bottom_half(
     tiny_tfbind8_dataset: TFBind8Dataset,
 ) -> None:
-    visible = TFBind8DesignBenchProtocol().build_input(tiny_tfbind8_dataset)
+    visible = TFBind8DesignBenchProtocol().build_input(tiny_tfbind8_dataset).data
 
     assert visible.column_names == ["sequence", "normalized_e_score"]
     assert visible.to_dict() == {
@@ -34,7 +34,7 @@ def test_protocol_can_select_a_raw_score_percentile_range(
         target_field="e_score",
     )
 
-    visible = protocol.build_input(tiny_tfbind8_dataset)
+    visible = protocol.build_input(tiny_tfbind8_dataset).data
 
     assert visible.column_names == ["sequence", "e_score"]
     assert visible.to_dict() == {
@@ -62,7 +62,7 @@ def test_protocol_rejects_invalid_percentile_ranges(
 def test_published_default_protocol_has_expected_unique_bottom_half(
     published_tfbind8_dataset: TFBind8Dataset,
 ) -> None:
-    visible = TFBind8DesignBenchProtocol().build_input(published_tfbind8_dataset)
+    visible = TFBind8DesignBenchProtocol().build_input(published_tfbind8_dataset).data
 
     assert len(visible) == 32_768
     assert visible.column_names == ["sequence", "normalized_e_score"]
@@ -88,7 +88,7 @@ def test_published_protocol_matches_legacy_visible_candidate_set(
         for row in legacy_x[legacy_y <= threshold]
     }
 
-    visible = TFBind8DesignBenchProtocol().build_input(published_tfbind8_dataset)
+    visible = TFBind8DesignBenchProtocol().build_input(published_tfbind8_dataset).data
 
     assert len(legacy_x[legacy_y <= threshold]) == 32_898
     assert len(legacy_visible) == 32_768

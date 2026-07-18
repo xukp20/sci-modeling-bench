@@ -135,7 +135,8 @@ this Protocol. The Agent receives only raw sequences and visible labels:
 ```python
 from sci_modeling_bench.suites.design_bench import UTRMRLCompositionalProtocol
 
-agent_input = UTRMRLCompositionalProtocol().build_input(dataset)
+bundle = UTRMRLCompositionalProtocol().build_input(dataset)
+agent_input = bundle.data
 
 print(agent_input.observations.column_names)
 # ['sequence', 'mean_ribosome_load']
@@ -143,6 +144,9 @@ print(agent_input.observations.column_names)
 print(agent_input.candidates.column_names)
 # ['sequence']
 ```
+
+The bundle manifest describes exactly these two views and does not include the
+hidden per-row `has_uaug` or `kozak_quality` partition annotations.
 
 The split definition is public, but per-row annotations are not exposed. A
 method must derive any useful motif, frame, composition, or structural
@@ -179,7 +183,8 @@ from sci_modeling_bench.suites.design_bench import (
 task = UTRMRLCompositionalRankingTask.from_hub(
     revision="2dd09bd522d8fd883e900321fdbd819b747521ea",
 )
-agent_input = task.build_input()
+bundle = task.build_input()
+agent_input = bundle.data
 
 submission = list(agent_input.candidates)[:128]
 evaluation = task.evaluate(submission)

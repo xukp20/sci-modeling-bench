@@ -12,7 +12,9 @@ from .conftest import UAUG_WEAK
 
 
 def test_protocol_exposes_labels_only_for_observations(tiny_utr_mrl_dataset) -> None:
-    agent_input = UTRMRLCompositionalProtocol().build_input(tiny_utr_mrl_dataset)
+    agent_input = UTRMRLCompositionalProtocol().build_input(
+        tiny_utr_mrl_dataset
+    ).data
 
     assert len(agent_input.observations) == 3
     assert len(agent_input.candidates) == 4

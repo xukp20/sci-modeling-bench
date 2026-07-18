@@ -58,9 +58,14 @@ task = TFBind8BlackBoxOptimizationTask.from_hub()
 agent_input = task.build_input()
 evaluation = task.evaluate(submission)
 
+print(agent_input.manifest.model_dump_json(indent=2))
 print(evaluation.score)
 print(evaluation.metrics)
 ```
+
+Every Task returns an `AgentInputBundle`. Domain-specific tables and constants
+are under `agent_input.data`; `agent_input.manifest` uniformly describes only
+the views and fields disclosed by that Task's Protocol.
 
 Pin the package version and immutable Hugging Face revision for reproducible
 runs. The public data artifacts do not create a secrecy boundary; controlled

@@ -148,11 +148,16 @@ from sci_modeling_bench.suites.design_bench import (
     SuperconductorMeasuredPoolProtocol,
 )
 
-agent_input = SuperconductorMeasuredPoolProtocol().build_input(dataset)
+bundle = SuperconductorMeasuredPoolProtocol().build_input(dataset)
+agent_input = bundle.data
 train = agent_input.observations
 candidates = agent_input.candidates
 element_symbols = agent_input.element_symbols
 ```
+
+The bundle manifest describes both tables and records `element_symbols` (and,
+when enabled, `descriptor_names`) as ordered scientific context for the vector
+columns.
 
 By default, the Protocol withholds the published descriptor vector so that a
 method can construct its own domain representation. Set
@@ -195,7 +200,8 @@ from sci_modeling_bench.suites.design_bench import (
 task = SuperconductorCandidatePoolRankingTask.from_hub(
     revision="b9ec928a5b54e105926e86a2d89be80a07aa0763",
 )
-agent_input = task.build_input()
+bundle = task.build_input()
+agent_input = bundle.data
 
 submission = list(agent_input.candidates)[:128]
 evaluation = task.evaluate(submission)

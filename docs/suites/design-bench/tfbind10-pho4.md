@@ -125,8 +125,13 @@ from sci_modeling_bench.suites.design_bench import (
 )
 
 agent_input = TFBind10Pho4LowerHalfProtocol().build_input(dataset)
-print(agent_input.column_names)
+print(agent_input.data.column_names)
+print(agent_input.manifest.views[0].fields)
 ```
+
+The manifest records the physical types, scientific roles, descriptions, and
+units of all seven visible columns. It does not advertise the hidden
+`affinity_score` or a candidate view.
 
 The Agent is responsible for replicate handling, zero-count treatment,
 feature construction, sequence modeling, and candidate generation. The Protocol
@@ -163,7 +168,8 @@ from sci_modeling_bench.suites.design_bench import (
 task = TFBind10Pho4BlackBoxOptimizationTask.from_hub(
     revision="51155f061b77c9f56a0ad8cf3b04c4ae481a7274"
 )
-offline_data = task.build_input()
+agent_input = task.build_input()
+offline_data = agent_input.data
 visible_sequences = list(dict.fromkeys(offline_data["sequence"]))
 submission = [{"sequence": sequence} for sequence in visible_sequences[:128]]
 evaluation = task.evaluate(submission)

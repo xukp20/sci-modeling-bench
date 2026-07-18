@@ -10,7 +10,15 @@ from datasets import Dataset as HFDataset
 
 from sci_modeling_bench.dataset import Dataset
 from sci_modeling_bench.exceptions import ProtocolError
-from sci_modeling_bench.protocol import Protocol
+from sci_modeling_bench.protocol import (
+    AgentInputBundle,
+    AgentInputContext,
+    AgentInputField,
+    Protocol,
+    agent_input_field,
+    agent_input_manifest,
+    agent_table_view,
+)
 from sci_modeling_bench.suites.design_bench.hopper_controller.dataset import (
     EXPECTED_ROLLOUT_COUNT,
     HOPPER_CONTROLLER_DEFAULT_SPLIT,
@@ -63,7 +71,7 @@ class HopperControllerLowerScoreProtocol(Protocol[HopperControllerAgentInput]):
         dataset: Dataset,
         *,
         split: str | None = None,
-    ) -> HopperControllerAgentInput:
+    ) -> AgentInputBundle[HopperControllerAgentInput]:
         policies = self._load_policies(dataset, split)
         visible_indices, candidate_indices, _ = self.partition(policies)
         identities = policies["policy_identity"]
@@ -81,9 +89,41 @@ class HopperControllerLowerScoreProtocol(Protocol[HopperControllerAgentInput]):
         candidates = policies.select(candidate_indices).select_columns(
             ["policy_weights"]
         )
-        return HopperControllerAgentInput(
+        data = HopperControllerAgentInput(
             observations=observations,
             candidates=candidates,
+        )
+        selected_split = split or HOPPER_CONTROLLER_DEFAULT_SPLIT
+        return AgentInputBundle(
+            data=data,
+            manifest=agent_input_manifest(
+                dataset,
+                protocol_id=self.protocol_id,
+                split=selected_split,
+                views=(
+                    agent_table_view(
+                        dataset,
+                        data.observations,
+                        name="observations",
+                        role="observations",
+                        description=(
+                            "Lower-score Hopper policies with every frozen stochastic "
+                            "rollout outcome exposed."
+                        ),
+                        overrides=_observation_view_fields(data.observations),
+                    ),
+                    agent_table_view(
+                        dataset,
+                        data.candidates,
+                        name="candidates",
+                        role="candidates",
+                        description=(
+                            "Label-hidden Hopper policy parameter vectors available for ranking."
+                        ),
+                    ),
+                ),
+                context=_policy_context(data),
+            ),
         )
 
     def candidate_pool(
@@ -145,3 +185,82 @@ class HopperControllerLowerScoreProtocol(Protocol[HopperControllerAgentInput]):
         if missing:
             raise ProtocolError(f"Hopper Controller split is missing columns: {missing}")
         return policies
+
+
+def _observation_view_fields(data: HFDataset) -> dict[str, AgentInputField]:
+    return {
+        "raw_returns": agent_input_field(
+            data,
+            "raw_returns",
+            role="target",
+            description="Frozen episodic return from each stochastic policy rollout.",
+            source_field="raw_returns",
+        ),
+        "episode_lengths": agent_input_field(
+            data,
+            "episode_lengths",
+            role="context",
+            description="Episode length paired with each frozen rollout return.",
+            unit="environment steps",
+            source_field="episode_lengths",
+        ),
+        "terminated": agent_input_field(
+            data,
+            "terminated",
+            role="context",
+            description="Whether each frozen rollout ended by environment termination.",
+            source_field="terminated",
+        ),
+        "truncated": agent_input_field(
+            data,
+            "truncated",
+            role="context",
+            description="Whether each frozen rollout ended at the time limit.",
+            source_field="truncated",
+        ),
+    }
+
+
+def _policy_context(data: HopperControllerAgentInput) -> tuple[AgentInputContext, ...]:
+    return (
+        AgentInputContext(
+            name="policy_layers",
+            description="Policy-network layer widths from observation to action.",
+            value=list(data.policy_layers),
+        ),
+        AgentInputContext(
+            name="parameter_order",
+            description="Flattened parameter-block order used by policy_weights.",
+            value=list(data.parameter_order),
+        ),
+        AgentInputContext(
+            name="hidden_activation",
+            description="Activation function used by both hidden policy layers.",
+            value=data.hidden_activation,
+        ),
+        AgentInputContext(
+            name="action_distribution",
+            description="Distribution used to sample continuous actions.",
+            value=data.action_distribution,
+        ),
+        AgentInputContext(
+            name="action_clip",
+            description="Inclusive lower and upper clipping bounds for sampled actions.",
+            value=list(data.action_clip),
+        ),
+        AgentInputContext(
+            name="environment_id",
+            description="Frozen Gymnasium environment identity used for rollouts.",
+            value=data.environment_id,
+        ),
+        AgentInputContext(
+            name="rollout_count",
+            description="Number of frozen stochastic rollouts per policy.",
+            value=data.rollout_count,
+        ),
+        AgentInputContext(
+            name="target_aggregation",
+            description="Aggregation defining the trusted policy score.",
+            value=data.target_aggregation,
+        ),
+    )

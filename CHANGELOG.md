@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-18
+
+### Added
+
+- Uniform `AgentInputBundle` and disclosure-scoped `AgentInputManifest` public
+  contracts covering Dataset identity, selected split, visible table schemas,
+  table disclosure roles, field roles, descriptions, physical types, units,
+  constraints, and Protocol-disclosed scientific constants.
+- Public helpers for constructing Agent table views from canonical Dataset
+  field specifications while requiring explicit semantics for renamed,
+  flattened, or derived visible columns.
+
+### Changed
+
+- **Breaking:** `Protocol.build_input()` and `Task.build_input()` now return an
+  `AgentInputBundle` instead of the domain-specific data object directly. Read
+  the former return value from `bundle.data`; use `bundle.manifest` for the
+  uniform machine-readable description. Task-built manifests additionally
+  carry the concrete `task_id`.
+- Every Design-Bench Protocol now publishes a manifest for exactly its
+  Agent-visible views, including multilevel GFP measurements, UTR
+  compositional inputs, Superconductor element order, Hopper policy layout,
+  DrugMatrix condition context, and the three black-box optimization inputs.
+  Complete canonical Dataset manifests and hidden Protocol fields are not
+  forwarded.
+
 ## [0.5.0] - 2026-07-18
 
 ### Added
@@ -175,7 +201,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dataset artifacts are distributed separately from the Python package and
   retain their own source, citation, provenance, and license metadata.
 
-[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.2.0...v0.3.0

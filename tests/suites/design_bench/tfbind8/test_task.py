@@ -33,7 +33,7 @@ def test_task_returns_the_common_ordered_candidate_metrics(
         {"sequence": "AACCGGTT"},
     ]
 
-    agent_input = task.build_input()
+    agent_input = task.build_input().data
     evaluation = task.evaluate(submission)
 
     assert len(agent_input) == 2

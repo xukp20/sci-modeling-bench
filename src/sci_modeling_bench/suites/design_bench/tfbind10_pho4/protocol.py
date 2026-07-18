@@ -10,7 +10,12 @@ from datasets import Dataset as HFDataset
 
 from sci_modeling_bench.dataset import Dataset
 from sci_modeling_bench.exceptions import ProtocolError
-from sci_modeling_bench.protocol import Protocol
+from sci_modeling_bench.protocol import (
+    AgentInputBundle,
+    Protocol,
+    agent_input_manifest,
+    agent_table_view,
+)
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4._sequence import (
     SEQUENCE_COUNT,
 )
@@ -52,7 +57,7 @@ class TFBind10Pho4LowerHalfProtocol(Protocol[HFDataset]):
         *,
         split: str | None = None,
         landscape: Pho4AffinityLandscape | None = None,
-    ) -> HFDataset:
+    ) -> AgentInputBundle[HFDataset]:
         observations = self._load_observations(dataset, split)
         selected_landscape = (
             landscape
@@ -72,8 +77,28 @@ class TFBind10Pho4LowerHalfProtocol(Protocol[HFDataset]):
         ).tolist()
         if not visible_rows or len(visible_rows) == len(observations):
             raise ProtocolError("affinity percentile selection produced an empty side")
-        return observations.select(visible_rows).select_columns(
+        visible = observations.select(visible_rows).select_columns(
             list(_AGENT_OBSERVATION_COLUMNS)
+        )
+        selected_split = split or TFBIND10_PHO4_DEFAULT_SPLIT
+        view = agent_table_view(
+            dataset,
+            visible,
+            name="observations",
+            role="observations",
+            description=(
+                "Raw Pho4 sequence-replicate observations for the lower half of "
+                "the trusted posterior-affinity landscape."
+            ),
+        )
+        return AgentInputBundle(
+            data=visible,
+            manifest=agent_input_manifest(
+                dataset,
+                protocol_id=self.protocol_id,
+                split=selected_split,
+                views=(view,),
+            ),
         )
 
     def _load_observations(

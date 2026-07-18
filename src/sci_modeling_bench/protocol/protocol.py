@@ -6,11 +6,14 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
 from sci_modeling_bench.dataset.dataset import Dataset
+from sci_modeling_bench.protocol.agent_input import AgentInputBundle
 
-ProtocolOutputT = TypeVar("ProtocolOutputT")
+ProtocolDataT = TypeVar("ProtocolDataT")
+# Backward-compatible name for callers that imported the former output type.
+ProtocolOutputT = ProtocolDataT
 
 
-class Protocol(ABC, Generic[ProtocolOutputT]):
+class Protocol(ABC, Generic[ProtocolDataT]):
     """Build one typed Agent input from a complete Dataset."""
 
     protocol_id: str
@@ -21,5 +24,5 @@ class Protocol(ABC, Generic[ProtocolOutputT]):
         dataset: Dataset,
         *,
         split: str | None = None,
-    ) -> ProtocolOutputT:
+    ) -> AgentInputBundle[ProtocolDataT]:
         """Construct the Agent-visible input without mutating the Dataset."""

@@ -31,7 +31,16 @@ from sci_modeling_bench.exceptions import (
     TaskError,
 )
 from sci_modeling_bench.objective import Objective
-from sci_modeling_bench.protocol import Protocol
+from sci_modeling_bench.protocol import (
+    AgentFieldRole,
+    AgentInputBundle,
+    AgentInputContext,
+    AgentInputField,
+    AgentInputManifest,
+    AgentInputView,
+    AgentViewRole,
+    Protocol,
+)
 from sci_modeling_bench.task import (
     BlackBoxOptimizationEvaluation,
     BlackBoxOptimizationTask,
@@ -45,6 +54,13 @@ from sci_modeling_bench.task import (
 )
 
 __all__ = [
+    "AgentFieldRole",
+    "AgentInputBundle",
+    "AgentInputContext",
+    "AgentInputField",
+    "AgentInputManifest",
+    "AgentInputView",
+    "AgentViewRole",
     "AllowedValuesConstraint",
     "AlphabetConstraint",
     "BlackBoxOptimizationEvaluation",

@@ -33,7 +33,7 @@ def test_protocol_exposes_only_raw_lower_half_observations(
     tiny_tfbind10_pho4_dataset,
 ) -> None:
     protocol = TFBind10Pho4LowerHalfProtocol()
-    agent_input = protocol.build_input(tiny_tfbind10_pho4_dataset)
+    agent_input = protocol.build_input(tiny_tfbind10_pho4_dataset).data
 
     assert protocol.protocol_id == "design-bench/tfbind10-pho4-lower-half-v2"
     assert len(agent_input) == 16

@@ -134,10 +134,15 @@ final evaluation to conditions with retained animal measurements.
 `DrugMatrixMeasuredPoolProtocol` returns exactly two tables:
 
 ```python
-agent_input = protocol.build_input(dataset)
+bundle = protocol.build_input(dataset)
+agent_input = bundle.data
 observations = agent_input.observations
 candidates = agent_input.candidates
 ```
+
+The bundle manifest assigns units, roles, physical types, and descriptions to
+every visible animal and condition field. It is shared by all six endpoint
+Tasks; `Task.build_input()` adds the endpoint-specific concrete `task_id`.
 
 The frozen candidate setting selects five-day chemical conditions at the
 largest observed dose for that CASRN, requires a reliable molecular mapping,
@@ -195,7 +200,8 @@ submission contract:
 
 ```python
 task = DrugMatrixCandidatePoolRankingTask.from_hub(endpoint="sodium")
-agent_input = task.build_input()
+bundle = task.build_input()
+agent_input = bundle.data
 
 submission = [
     {"condition_id": value}

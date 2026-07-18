@@ -8,7 +8,7 @@ from typing import Generic, TypeVar
 from sci_modeling_bench.dataset import Dataset
 from sci_modeling_bench.exceptions import TaskError
 from sci_modeling_bench.objective import Objective
-from sci_modeling_bench.protocol import Protocol
+from sci_modeling_bench.protocol import AgentInputBundle, Protocol
 from sci_modeling_bench.task.evaluation import SubmissionEvaluation
 
 AgentInputT = TypeVar("AgentInputT")
@@ -35,10 +35,14 @@ class Task(ABC, Generic[AgentInputT, SubmissionT, EvaluationT]):
     def protocol(self) -> Protocol[AgentInputT]:
         return self._protocol
 
-    def build_input(self) -> AgentInputT:
+    def build_input(self) -> AgentInputBundle[AgentInputT]:
         """Build the information exposed to the Agent."""
 
-        return self.protocol.build_input(self.dataset)
+        bundle = self.protocol.build_input(self.dataset)
+        return AgentInputBundle(
+            data=bundle.data,
+            manifest=bundle.manifest.for_task(self.task_id),
+        )
 
     @abstractmethod
     def evaluate(self, submission: SubmissionT) -> EvaluationT:

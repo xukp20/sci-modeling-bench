@@ -11,7 +11,7 @@ def test_protocol_exposes_visible_source_views_without_candidate_labels(
 ) -> None:
     protocol = GFPLowerToHigherMeasuredPoolProtocol(visible_max_percentile=50.0)
 
-    agent_input = protocol.build_input(tiny_gfp_dataset)
+    agent_input = protocol.build_input(tiny_gfp_dataset).data
     pool = protocol.candidate_pool(tiny_gfp_dataset)
 
     assert len(agent_input.protein_observations) == 5

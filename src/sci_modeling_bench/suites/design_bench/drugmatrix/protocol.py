@@ -9,7 +9,14 @@ from datasets import Dataset as HFDataset
 
 from sci_modeling_bench.dataset import Dataset
 from sci_modeling_bench.exceptions import ProtocolError
-from sci_modeling_bench.protocol import Protocol
+from sci_modeling_bench.protocol import (
+    AgentInputBundle,
+    AgentInputField,
+    Protocol,
+    agent_input_field,
+    agent_input_manifest,
+    agent_table_view,
+)
 from sci_modeling_bench.suites.design_bench.drugmatrix._conditions import (
     MeasuredPool,
     build_measured_pool,
@@ -47,7 +54,7 @@ class DrugMatrixMeasuredPoolProtocol(Protocol[DrugMatrixAgentInput]):
         dataset: Dataset,
         *,
         split: str | None = None,
-    ) -> DrugMatrixAgentInput:
+    ) -> AgentInputBundle[DrugMatrixAgentInput]:
         selected_split = split or DRUGMATRIX_DEFAULT_SPLIT
         observations = self._load_observations(dataset, selected_split)
         pool = self._pool(dataset, selected_split, observations)
@@ -56,9 +63,40 @@ class DrugMatrixMeasuredPoolProtocol(Protocol[DrugMatrixAgentInput]):
             for index in range(len(observations))
             if index not in pool.treatment_row_indices
         ]
-        return DrugMatrixAgentInput(
+        data = DrugMatrixAgentInput(
             observations=observations.select(visible_indices),
             candidates=candidate_view(pool),
+        )
+        return AgentInputBundle(
+            data=data,
+            manifest=agent_input_manifest(
+                dataset,
+                protocol_id=self.protocol_id,
+                split=selected_split,
+                views=(
+                    agent_table_view(
+                        dataset,
+                        data.observations,
+                        name="observations",
+                        role="observations",
+                        description=(
+                            "Agent-visible individual-animal chemical and matched-control "
+                            "clinical-pathology observations."
+                        ),
+                        overrides=_observation_view_fields(data.observations),
+                    ),
+                    agent_table_view(
+                        dataset,
+                        data.candidates,
+                        name="candidates",
+                        role="candidates",
+                        description=(
+                            "Label-hidden measured five-day maximum-dose treatment conditions."
+                        ),
+                        overrides=_candidate_view_fields(data.candidates),
+                    ),
+                ),
+            ),
         )
 
     def candidate_pool(
@@ -94,3 +132,55 @@ class DrugMatrixMeasuredPoolProtocol(Protocol[DrugMatrixAgentInput]):
             return dataset.load(split)
         except ValueError as exc:
             raise ProtocolError(str(exc)) from exc
+
+
+def _observation_view_fields(data: HFDataset) -> dict[str, AgentInputField]:
+    descriptions = {
+        "animal_id": "Unique source identifier for one individual-animal record.",
+        "study_id": "Source toxicology study identifier.",
+        "casrn": "Chemical Abstracts Service identifier; null for control animals.",
+        "dose": "Source-administered chemical dose; null for control animals.",
+        "duration_days": "Exposure duration recorded for this animal.",
+        "vehicle": "Administration vehicle reported for this animal.",
+        "treatment": "Chemical, vehicle-control, or untreated-control class.",
+        "sex": "Animal sex when reported.",
+        "route": "Administration route when reported.",
+    }
+    return {
+        name: agent_input_field(
+            data,
+            name,
+            role="context",
+            description=description,
+            unit="days" if name == "duration_days" else None,
+            required=name not in {"casrn", "dose", "vehicle", "sex", "route"},
+            source_field=name,
+        )
+        for name, description in descriptions.items()
+    }
+
+
+def _candidate_view_fields(data: HFDataset) -> dict[str, AgentInputField]:
+    descriptions = {
+        "condition_id": "Stable identity of the complete measured treatment condition.",
+        "casrn": "Chemical Abstracts Service identifier for the treatment molecule.",
+        "dose": "Source-administered dose for this measured treatment condition.",
+        "duration_days": "Exposure duration for this measured treatment condition.",
+        "vehicle": "Administration vehicle matched to the condition controls.",
+        "sex": "Animal sex defining the measured treatment condition.",
+        "route": "Administration route defining the measured treatment condition.",
+        "study_id": "Source study defining the measured treatment condition.",
+    }
+    fields = {
+        name: agent_input_field(
+            data,
+            name,
+            role="input" if name == "condition_id" else "context",
+            description=description,
+            unit="days" if name == "duration_days" else None,
+            required=True,
+            source_field=name,
+        )
+        for name, description in descriptions.items()
+    }
+    return fields

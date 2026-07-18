@@ -24,7 +24,7 @@ def test_task_scores_selection_and_submitted_order(
     by_score = {row["critical_temp_k"]: row["composition"] for row in pool}
 
     candidates = {
-        tuple(row["composition"]): row for row in task.build_input().candidates
+        tuple(row["composition"]): row for row in task.build_input().data.candidates
     }
     evaluation = task.evaluate(
         [
@@ -51,7 +51,7 @@ def test_task_can_select_an_alternate_primary_metric(
     task = _task(tiny_superconductor_dataset, primary_metric="batch_mean")
     pool = task.protocol.candidate_pool(tiny_superconductor_dataset)
     visible_candidates = {
-        tuple(row["composition"]): row for row in task.build_input().candidates
+        tuple(row["composition"]): row for row in task.build_input().data.candidates
     }
     candidates = [
         visible_candidates[tuple(pool[index]["composition"])] for index in (2, 3, 4)
@@ -91,9 +91,9 @@ def test_repeated_composition_id_is_rejected(
     tiny_superconductor_dataset,
 ) -> None:
     task = _task(tiny_superconductor_dataset)
-    candidate = task.build_input().candidates[0]
+    candidate = task.build_input().data.candidates[0]
 
-    evaluation = task.evaluate([candidate, candidate, task.build_input().candidates[1]])
+    evaluation = task.evaluate([candidate, candidate, task.build_input().data.candidates[1]])
 
     assert evaluation.metrics == {}
     assert evaluation.candidates[1].validation.violations[0].code == (
@@ -109,7 +109,7 @@ def test_canonical_task_accepts_candidate_content_and_ignores_a_suffix(
         protocol=SuperconductorMeasuredPoolProtocol(visible_max_percentile=50.0),
         submission_size=3,
     )
-    candidates = list(task.build_input().candidates)
+    candidates = list(task.build_input().data.candidates)
 
     evaluation = task.evaluate(candidates[:4])
 

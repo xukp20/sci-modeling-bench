@@ -120,7 +120,7 @@ median measured target:
 - the candidate pool has `critical_temp_k > 73 K`;
 - every source observation belonging to a visible group is exposed with its
   raw measured temperature;
-- candidate compositions, IDs, and representative formulas are exposed, but
+- candidate compositions and representative formulas are exposed, but
   candidate targets are hidden.
 
 The pinned default partition contains:
@@ -164,30 +164,28 @@ output = objective.evaluate({"composition_id": groups[0]["composition_id"]})
 
 It is exact with respect to the frozen aggregate table, but it is not an exact
 physical simulator and does not assign targets to arbitrary new compositions.
-The default Task further restricts submissions to IDs in the label-hidden
-candidate pool.
+The default Task further restricts submissions to full candidate entries from
+the label-hidden pool.
 
-## Black-Box Optimization Task
+## Candidate-Pool Ranking Task
 
-`SuperconductorBlackBoxOptimizationTask` asks an Agent to select and rank
+`SuperconductorCandidatePoolRankingTask` asks an Agent to select and rank
 measured candidate groups. `submission_size` defaults to 128. The submitted
-list must contain exactly that many legal, unique candidate-pool IDs in
-descending predicted quality.
+list must contain at least that many legal, unique candidate-pool entries in
+descending predicted quality. Only the configured leading prefix is scored;
+any longer suffix is ignored.
 
 ```python
 from sci_modeling_bench.suites.design_bench import (
-    SuperconductorBlackBoxOptimizationTask,
+    SuperconductorCandidatePoolRankingTask,
 )
 
-task = SuperconductorBlackBoxOptimizationTask.from_hub(
+task = SuperconductorCandidatePoolRankingTask.from_hub(
     revision="b9ec928a5b54e105926e86a2d89be80a07aa0763",
 )
 agent_input = task.build_input()
 
-submission = [
-    {"composition_id": candidate_id}
-    for candidate_id in agent_input.candidates["composition_id"][:128]
-]
+submission = list(agent_input.candidates)[:128]
 evaluation = task.evaluate(submission)
 
 print(evaluation.score)                 # global_ndcg
@@ -258,7 +256,7 @@ are an explicit opt-in baseline, not hidden maintainer feature engineering.
 
 Models should not infer that every non-negative 86-vector is chemically valid
 or synthesizable. This Task avoids that unsupported claim by restricting final
-candidates to measured composition IDs. Structure-aware discovery requires a
+candidates to measured normalized compositions. Structure-aware discovery requires a
 richer Dataset and a separately versioned Task.
 
 ## Agent Visibility and Leakage

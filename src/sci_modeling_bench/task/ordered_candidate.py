@@ -1,4 +1,4 @@
-"""Shared candidate evaluation for Design-Bench-style optimization Tasks."""
+"""Ordered-candidate Task contracts shared by optimization and pool ranking."""
 
 from __future__ import annotations
 
@@ -13,12 +13,12 @@ from sci_modeling_bench.dataset import Dataset, ValidationReport
 from sci_modeling_bench.exceptions import TaskError
 from sci_modeling_bench.objective import Candidate, Objective
 from sci_modeling_bench.protocol import Protocol
-from sci_modeling_bench.task import (
-    ObjectiveBackedTask,
+from sci_modeling_bench.task.evaluation import (
     SubmissionEvaluation,
     SubmissionValidationReport,
     SubmissionViolation,
 )
+from sci_modeling_bench.task.task import ObjectiveBackedTask
 
 AgentInputT = TypeVar("AgentInputT")
 MetricDirection = Literal["maximize", "minimize"]
@@ -83,12 +83,12 @@ class CandidateValidationReport(BaseModel):
             )
         )
 
-    def with_violation(self, violation: CandidateViolation) -> CandidateValidationReport:
+    def with_violation(
+        self, violation: CandidateViolation
+    ) -> CandidateValidationReport:
         """Return a report with one additional immutable finding."""
 
-        return self.model_copy(
-            update={"violations": self.violations + (violation,)}
-        )
+        return self.model_copy(update={"violations": self.violations + (violation,)})
 
 
 class CandidateEvaluation(BaseModel):
@@ -109,9 +109,7 @@ class CandidateEvaluation(BaseModel):
     @model_validator(mode="after")
     def validate_evaluation_state(self) -> CandidateEvaluation:
         if self.valid and (self.score is None or self.objective_output is None):
-            raise ValueError(
-                "valid candidates require a score and Objective output"
-            )
+            raise ValueError("valid candidates require a score and Objective output")
         if not self.valid and (
             self.score is not None or self.objective_output is not None
         ):
@@ -150,7 +148,15 @@ class BlackBoxOptimizationEvaluation(SubmissionEvaluation):
         return self.all_candidates_valid and bool(self.metrics)
 
 
-class DesignBenchBlackBoxOptimizationTask(
+class CandidatePoolRankingEvaluation(BlackBoxOptimizationEvaluation):
+    """Evaluation of the scored prefix of a finite-pool submission."""
+
+    candidate_pool_size: int = Field(ge=1)
+    evaluated_candidates: int = Field(ge=0)
+    ignored_candidates: int = Field(ge=0)
+
+
+class _OrderedCandidateTask(
     ObjectiveBackedTask[
         AgentInputT,
         Iterable[Candidate],
@@ -158,7 +164,7 @@ class DesignBenchBlackBoxOptimizationTask(
     ],
     Generic[AgentInputT],
 ):
-    """Evaluate an ordered, fixed-size batch against a trusted reference."""
+    """Private metric and candidate-evaluation implementation."""
 
     default_submission_size = 128
     default_primary_metric = "best_k_mean"
@@ -195,7 +201,9 @@ class DesignBenchBlackBoxOptimizationTask(
                 f"got {selected_primary!r}"
             )
 
-        reference = tuple(_finite_score(value, "reference score") for value in reference_scores)
+        reference = tuple(
+            _finite_score(value, "reference score") for value in reference_scores
+        )
         if len(reference) < submission_size:
             raise TaskError(
                 f"reference contains {len(reference)} scores but submission_size "
@@ -285,11 +293,28 @@ class DesignBenchBlackBoxOptimizationTask(
                 submitted_candidates=len(candidate_batch),
             )
 
+        return self._evaluate_candidate_batch(
+            candidate_batch,
+            submission_report,
+            submitted_candidates=len(candidate_batch),
+        )
+
+    def _evaluate_candidate_batch(
+        self,
+        candidate_batch: tuple[Candidate, ...],
+        submission_report: SubmissionValidationReport,
+        *,
+        submitted_candidates: int,
+    ) -> BlackBoxOptimizationEvaluation:
+        """Validate and score the candidate batch selected by a public Task."""
+
         reports = [
             self._validate_candidate(
                 candidate,
                 CandidateValidationReport.from_dataset_report(
-                    self.dataset.validate_inputs(candidate)
+                    self.dataset.validate_inputs(
+                        self._candidate_for_dataset_validation(candidate)
+                    )
                 ),
             )
             for candidate in candidate_batch
@@ -304,7 +329,9 @@ class DesignBenchBlackBoxOptimizationTask(
             if report.valid
         )
         outputs = (
-            self.objective.evaluate_batch(candidate for _, candidate in valid_pairs)
+            self.objective.evaluate_batch(
+                self._candidate_for_objective(candidate) for _, candidate in valid_pairs
+            )
             if valid_pairs
             else ()
         )
@@ -335,7 +362,7 @@ class DesignBenchBlackBoxOptimizationTask(
         )
         return self._build_evaluation(
             submission_report,
-            submitted_candidates=len(candidate_batch),
+            submitted_candidates=submitted_candidates,
             candidates=candidates,
             metrics=metrics,
             best=best,
@@ -354,6 +381,16 @@ class DesignBenchBlackBoxOptimizationTask(
         """Return the identity used to reject repeated submitted candidates."""
 
         return _freeze(candidate)
+
+    def _candidate_for_dataset_validation(self, candidate: Candidate) -> Candidate:
+        """Return the Dataset-schema view of one submitted candidate."""
+
+        return candidate
+
+    def _candidate_for_objective(self, candidate: Candidate) -> Candidate:
+        """Return the Dataset-schema view passed to the Objective."""
+
+        return candidate
 
     def _mark_duplicates(
         self,
@@ -392,9 +429,7 @@ class DesignBenchBlackBoxOptimizationTask(
         )
 
     def _calculate_metrics(self, scores: tuple[float, ...]) -> dict[str, float]:
-        utilities = tuple(
-            _utility(score, self.objective_direction) for score in scores
-        )
+        utilities = tuple(_utility(score, self.objective_direction) for score in scores)
         best_indices = sorted(
             range(len(scores)),
             key=utilities.__getitem__,
@@ -405,12 +440,8 @@ class DesignBenchBlackBoxOptimizationTask(
         reference_descending = sorted(self._reference_utilities, reverse=True)
 
         reference_best = reference_descending[0]
-        reference_best_k_mean = _mean(
-            reference_descending[: self.summary_size]
-        )
-        reference_batch_mean = _mean(
-            reference_descending[: self.submission_size]
-        )
+        reference_best_k_mean = _mean(reference_descending[: self.summary_size])
+        reference_batch_mean = _mean(reference_descending[: self.submission_size])
         reference_mean = _mean(self._reference_utilities)
         submitted_mean_utility = _mean(utilities)
 
@@ -446,9 +477,7 @@ class DesignBenchBlackBoxOptimizationTask(
             ),
             "global_ndcg": actual_dcg / global_ideal_dcg,
             "reranking_ndcg": (
-                actual_dcg / reranking_ideal_dcg
-                if reranking_ideal_dcg > 0.0
-                else 0.0
+                actual_dcg / reranking_ideal_dcg if reranking_ideal_dcg > 0.0 else 0.0
             ),
         }
 
@@ -505,10 +534,167 @@ class DesignBenchBlackBoxOptimizationTask(
             reference_scope=self.reference_scope,
             reference_size=len(self._reference_scores),
             best_candidate_index=best.index if best is not None else None,
-            best_objective_output=(
-                best.objective_output if best is not None else None
-            ),
+            best_objective_output=(best.objective_output if best is not None else None),
             candidates=candidates,
+        )
+
+
+class BlackBoxOptimizationTask(_OrderedCandidateTask[AgentInputT]):
+    """Evaluate exactly ``submission_size`` free-form candidates."""
+
+
+class CandidatePoolRankingTask(_OrderedCandidateTask[AgentInputT]):
+    """Select and order the scored prefix of a finite candidate pool.
+
+    A submission must contain at least ``submission_size`` candidates.  Only
+    that leading prefix is validated and sent to the Objective; any suffix is
+    accepted as an unscored convenience for callers that return a longer list.
+    """
+
+    default_primary_metric = "global_ndcg"
+
+    def __init__(
+        self,
+        dataset: Dataset,
+        protocol: Protocol[AgentInputT],
+        objective: Objective,
+        *,
+        candidate_pool: Iterable[Candidate],
+        score_field: str,
+        reference_scores: Iterable[Real],
+        reference_scope: ReferenceScope = "evaluation_pool",
+        submission_size: int = _OrderedCandidateTask.default_submission_size,
+        primary_metric: str | None = None,
+        objective_direction: MetricDirection = "maximize",
+    ) -> None:
+        super().__init__(
+            dataset,
+            protocol,
+            objective,
+            score_field=score_field,
+            reference_scores=reference_scores,
+            reference_scope=reference_scope,
+            submission_size=submission_size,
+            primary_metric=primary_metric,
+            objective_direction=objective_direction,
+        )
+        pool = tuple(candidate_pool)
+        if len(pool) < submission_size:
+            raise TaskError(
+                f"candidate_pool contains {len(pool)} candidates but "
+                f"submission_size is {submission_size}"
+            )
+        identities: set[Hashable] = set()
+        for index, candidate in enumerate(pool):
+            report = dataset.validate_inputs(
+                self._candidate_for_dataset_validation(candidate)
+            )
+            if not report.valid:
+                raise TaskError(
+                    f"candidate_pool item {index} violates the Dataset input schema"
+                )
+            identity = self._candidate_identity(candidate)
+            if identity in identities:
+                raise TaskError("candidate_pool must contain unique candidates")
+            identities.add(identity)
+        self._candidate_pool = pool
+        self._candidate_pool_identities = frozenset(identities)
+
+    @property
+    def candidate_pool_size(self) -> int:
+        return len(self._candidate_pool)
+
+    def evaluate(
+        self,
+        submission: Iterable[Candidate],
+    ) -> CandidatePoolRankingEvaluation:
+        candidate_batch, submission_report = self._validate_submission(submission)
+        if not submission_report.valid:
+            return self._build_evaluation(
+                submission_report,
+                submitted_candidates=len(candidate_batch),
+            )
+        return self._evaluate_candidate_batch(
+            candidate_batch[: self.submission_size],
+            submission_report,
+            submitted_candidates=len(candidate_batch),
+        )
+
+    def _validate_submission(
+        self,
+        submission: Iterable[Candidate],
+    ) -> tuple[tuple[Any, ...], SubmissionValidationReport]:
+        if isinstance(submission, (str, bytes, bytearray, Mapping)):
+            return (), _invalid_submission_type()
+        try:
+            candidate_batch = tuple(submission)
+        except TypeError:
+            return (), _invalid_submission_type()
+
+        if len(candidate_batch) < self.submission_size:
+            return candidate_batch, SubmissionValidationReport(
+                violations=(
+                    SubmissionViolation(
+                        code="insufficient_candidate_count",
+                        message=(
+                            f"expected at least {self.submission_size} candidates, "
+                            f"got {len(candidate_batch)}"
+                        ),
+                    ),
+                )
+            )
+        return candidate_batch, SubmissionValidationReport()
+
+    def _validate_candidate(
+        self,
+        candidate: Candidate,
+        report: CandidateValidationReport,
+    ) -> CandidateValidationReport:
+        if report.valid and self._candidate_identity(candidate) not in (
+            self._candidate_pool_identities
+        ):
+            return report.with_violation(
+                CandidateViolation(
+                    code="candidate_outside_evaluation_pool",
+                    message="candidate is not in the label-hidden candidate pool",
+                )
+            )
+        return report
+
+    def _build_evaluation(
+        self,
+        report: SubmissionValidationReport,
+        *,
+        submitted_candidates: int,
+        candidates: tuple[CandidateEvaluation, ...] = (),
+        metrics: dict[str, float] | None = None,
+        best: CandidateEvaluation | None = None,
+    ) -> CandidatePoolRankingEvaluation:
+        produced_metrics = metrics or {}
+        valid_count = sum(item.valid for item in candidates)
+        evaluated_count = len(candidates)
+        return CandidatePoolRankingEvaluation(
+            task_id=self.task_id,
+            submission_validation=report,
+            metrics=produced_metrics,
+            metric_directions=self.metric_directions,
+            primary_metric=self.primary_metric,
+            metric_direction=self.metric_directions[self.primary_metric],
+            expected_candidates=self.submission_size,
+            submitted_candidates=submitted_candidates,
+            valid_candidates=valid_count,
+            invalid_candidates=evaluated_count - valid_count,
+            score_field=self.score_field,
+            aggregation="candidate_metrics",
+            summary_size=self.summary_size,
+            reference_scope=self.reference_scope,
+            reference_size=len(self._reference_scores),
+            best_candidate_index=best.index if best is not None else None,
+            best_objective_output=(best.objective_output if best is not None else None),
+            candidates=candidates,
+            candidate_pool_size=self.candidate_pool_size,
+            evaluated_candidates=evaluated_count,
+            ignored_candidates=max(0, submitted_candidates - evaluated_count),
         )
 
 
@@ -545,10 +731,7 @@ def _mean(values: Sequence[float]) -> float:
 
 
 def _dcg(gains: Sequence[float]) -> float:
-    return math.fsum(
-        gain / math.log2(index + 2)
-        for index, gain in enumerate(gains)
-    )
+    return math.fsum(gain / math.log2(index + 2) for index, gain in enumerate(gains))
 
 
 def _freeze(value: Any) -> Hashable:
@@ -563,4 +746,6 @@ def _freeze(value: Any) -> Hashable:
         return _freeze(to_list())
     if isinstance(value, Hashable):
         return value
-    raise TaskError(f"candidate value of type {type(value).__name__} has no stable identity")
+    raise TaskError(
+        f"candidate value of type {type(value).__name__} has no stable identity"
+    )

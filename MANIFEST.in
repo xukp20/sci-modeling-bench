@@ -4,4 +4,5 @@ include README.md
 include THIRD_PARTY_NOTICES.md
 recursive-include assets *.png
 recursive-include docs *.md
+recursive-include constraints *.txt
 recursive-include tests *.py

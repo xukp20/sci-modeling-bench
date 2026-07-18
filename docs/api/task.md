@@ -50,7 +50,7 @@ candidate pool is a candidate problem.
 
 ## Black-Box Optimization
 
-`DesignBenchBlackBoxOptimizationTask` accepts an ordered list of candidates.
+`BlackBoxOptimizationTask` accepts an ordered list of candidates.
 `submission_size` defaults to 128 and can be configured when constructing the
 Task. Position 1 represents the candidate the Agent predicts to be best.
 
@@ -98,10 +98,25 @@ evaluation.candidates[0].validation
 ```
 
 TFBind8 and CellDAG-NAS use `best_k_mean` with a `full_domain` reference.
-TFBind10 Pho4 uses `normalized_enrichment`, and Superconductor uses
-`global_ndcg`; both use a frozen `evaluation_pool` reference. Their suite
-guides define the corresponding candidate identities, visible inputs, and
-scientific score fields.
+TFBind10 Pho4 uses `normalized_enrichment` with a frozen `evaluation_pool`
+reference. Their suite guides define the corresponding candidate identities,
+visible inputs, and scientific score fields.
+
+## Candidate-Pool Ranking
+
+`CandidatePoolRankingTask` is the parallel contract for a finite, explicitly
+Agent-visible candidate pool. It reuses the candidate validation, Objective,
+reference, and common metric behavior above, but interprets
+`submission_size` as the scored prefix size `K`.
+
+An Agent submits candidate content in descending predicted quality. At least
+`K` candidates are required. Only the first `K` are validated, deduplicated,
+checked for pool membership, and sent to the Objective; a longer suffix is
+accepted but ignored. The evaluation adds `candidate_pool_size`,
+`evaluated_candidates`, and `ignored_candidates`.
+
+Superconductor uses this contract because its Objective is an exact lookup
+only over a frozen measured pool, not an oracle for arbitrary new materials.
 
 ## Trust Boundary
 

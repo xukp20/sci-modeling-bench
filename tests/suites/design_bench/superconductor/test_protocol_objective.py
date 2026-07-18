@@ -17,6 +17,7 @@ def test_protocol_exposes_raw_visible_observations_and_hidden_candidates(
     assert len(agent_input.observations) == 5
     assert agent_input.observations["critical_temp_k"] == [1.0, 2.0, 3.0, 4.0, 5.0]
     assert len(agent_input.candidates) == 5
+    assert "composition_id" not in agent_input.candidates.column_names
     assert "critical_temp_k" not in agent_input.candidates.column_names
     assert pool["critical_temp_k"] == [6.0, 7.0, 8.0, 9.0, 10.0]
 

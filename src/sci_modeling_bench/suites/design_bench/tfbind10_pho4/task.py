@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from sci_modeling_bench.objective import Candidate
-from sci_modeling_bench.suites.design_bench.black_box_optimization import (
+from sci_modeling_bench.task import (
+    BlackBoxOptimizationTask,
     CandidateValidationReport,
     CandidateViolation,
-    DesignBenchBlackBoxOptimizationTask,
 )
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4.dataset import (
     DEFAULT_TFBIND10_PHO4_REPO_ID,
@@ -23,7 +23,7 @@ from sci_modeling_bench.suites.design_bench.tfbind10_pho4.protocol import (
 
 
 class TFBind10Pho4BlackBoxOptimizationTask(
-    DesignBenchBlackBoxOptimizationTask[TFBind10Pho4AgentInput]
+    BlackBoxOptimizationTask[TFBind10Pho4AgentInput]
 ):
     """Select a high-affinity batch from the label-hidden upper-half pool."""
 

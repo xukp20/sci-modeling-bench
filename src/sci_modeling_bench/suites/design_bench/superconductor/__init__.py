@@ -18,7 +18,7 @@ from sci_modeling_bench.suites.design_bench.superconductor.protocol import (
     SuperconductorMeasuredPoolProtocol,
 )
 from sci_modeling_bench.suites.design_bench.superconductor.task import (
-    SuperconductorBlackBoxOptimizationTask,
+    SuperconductorCandidatePoolRankingTask,
 )
 
 __all__ = [
@@ -29,7 +29,7 @@ __all__ = [
     "SUPERCONDUCTOR_CONFIG_NAME",
     "SUPERCONDUCTOR_DEFAULT_SPLIT",
     "SuperconductorAgentInput",
-    "SuperconductorBlackBoxOptimizationTask",
+    "SuperconductorCandidatePoolRankingTask",
     "SuperconductorDataset",
     "SuperconductorMeasuredObjective",
     "SuperconductorMeasuredPoolProtocol",

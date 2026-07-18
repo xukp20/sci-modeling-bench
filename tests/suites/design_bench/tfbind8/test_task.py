@@ -3,10 +3,19 @@ from __future__ import annotations
 import pytest
 
 from sci_modeling_bench.exceptions import TaskError
+from sci_modeling_bench.task import (
+    BlackBoxOptimizationEvaluation,
+    BlackBoxOptimizationTask,
+    CandidatePoolRankingTask,
+)
 from sci_modeling_bench.suites.design_bench import (
     CandidateValidationReport,
     CandidateViolation,
     TFBind8BlackBoxOptimizationTask,
+)
+from sci_modeling_bench.suites.design_bench.tfbind8 import (
+    TFBind8DesignBenchProtocol,
+    TFBind8ExactObjective,
 )
 from sci_modeling_bench.task import SubmissionValidationReport
 
@@ -56,9 +65,7 @@ def test_task_primary_metric_and_submission_size_are_configurable(
         primary_metric="rank_1_score",
     )
 
-    evaluation = task.evaluate(
-        [{"sequence": "AACCGGTT"}, {"sequence": "TTTTTTTT"}]
-    )
+    evaluation = task.evaluate([{"sequence": "AACCGGTT"}, {"sequence": "TTTTTTTT"}])
 
     assert evaluation.expected_candidates == 2
     assert evaluation.primary_metric == "rank_1_score"
@@ -141,9 +148,7 @@ def test_all_invalid_candidates_return_diagnostics_without_fake_outputs(
         tiny_tfbind8_dataset,
         submission_size=3,
     )
-    evaluation = task.evaluate(
-        [{"sequence": "XXXXXXXX"} for _ in range(3)]
-    )
+    evaluation = task.evaluate([{"sequence": "XXXXXXXX"} for _ in range(3)])
 
     assert evaluation.submission_valid
     assert evaluation.valid_candidates == 0
@@ -160,9 +165,7 @@ def test_wrong_candidate_count_is_a_submission_level_failure(
         tiny_tfbind8_dataset,
         submission_size=3,
     )
-    evaluation = task.evaluate(
-        [{"sequence": "AAAAAAAA"}, {"sequence": "AAAAAAAC"}]
-    )
+    evaluation = task.evaluate([{"sequence": "AAAAAAAA"}, {"sequence": "AAAAAAAC"}])
 
     assert not evaluation.submission_valid
     assert evaluation.submission_validation.violations[0].code == (
@@ -172,6 +175,30 @@ def test_wrong_candidate_count_is_a_submission_level_failure(
     assert evaluation.submitted_candidates == 2
     assert evaluation.score is None
     assert evaluation.candidates == ()
+
+
+def test_overlong_bbo_submission_is_also_a_count_failure(
+    tiny_tfbind8_dataset,
+) -> None:
+    task = TFBind8BlackBoxOptimizationTask(
+        tiny_tfbind8_dataset,
+        submission_size=3,
+    )
+
+    evaluation = task.evaluate(
+        [
+            {"sequence": "AAAAAAAA"},
+            {"sequence": "AAAAAAAC"},
+            {"sequence": "AACCGGTT"},
+            {"sequence": "TTTTTTTT"},
+        ]
+    )
+
+    assert not evaluation.submission_valid
+    assert evaluation.submitted_candidates == 4
+    assert evaluation.submission_validation.violations[0].code == (
+        "candidate_count_mismatch"
+    )
 
 
 def test_non_iterable_candidate_submission_is_rejected(
@@ -189,3 +216,132 @@ def test_non_iterable_candidate_submission_is_rejected(
     )
     assert evaluation.submitted_candidates == 0
     assert evaluation.score is None
+
+
+class _TinyTFBind8RankingTask(CandidatePoolRankingTask):
+    task_id = "test/tfbind8-candidate-pool-ranking"
+
+
+def _ranking_task(dataset) -> _TinyTFBind8RankingTask:
+    data = dataset.load()
+    pool = tuple({"sequence": sequence} for sequence in data["sequence"])
+    return _TinyTFBind8RankingTask(
+        dataset,
+        TFBind8DesignBenchProtocol(),
+        TFBind8ExactObjective(dataset),
+        candidate_pool=pool,
+        score_field="normalized_e_score",
+        reference_scores=data["normalized_e_score"],
+        submission_size=3,
+    )
+
+
+def test_pool_ranking_scores_only_the_required_prefix(
+    tiny_tfbind8_dataset,
+) -> None:
+    task = _ranking_task(tiny_tfbind8_dataset)
+    evaluation = task.evaluate(
+        [
+            {"sequence": "AAAAAAAA"},
+            {"sequence": "TTTTTTTT"},
+            {"sequence": "AACCGGTT"},
+            {"sequence": "XXXXXXXX"},
+        ]
+    )
+
+    assert evaluation.submission_valid
+    assert evaluation.evaluation_eligible
+    assert evaluation.candidate_pool_size == 4
+    assert evaluation.submitted_candidates == 4
+    assert evaluation.evaluated_candidates == 3
+    assert evaluation.ignored_candidates == 1
+    assert len(evaluation.candidates) == 3
+
+
+def test_pool_ranking_rejects_a_short_submission(
+    tiny_tfbind8_dataset,
+) -> None:
+    evaluation = _ranking_task(tiny_tfbind8_dataset).evaluate(
+        [{"sequence": "AAAAAAAA"}, {"sequence": "TTTTTTTT"}]
+    )
+
+    assert not evaluation.submission_valid
+    assert evaluation.submission_validation.violations[0].code == (
+        "insufficient_candidate_count"
+    )
+    assert evaluation.evaluated_candidates == 0
+
+
+def test_pool_ranking_rejects_out_of_pool_candidates_in_the_prefix(
+    tiny_tfbind8_dataset,
+) -> None:
+    evaluation = _ranking_task(tiny_tfbind8_dataset).evaluate(
+        [
+            {"sequence": "AAAAAAAG"},
+            {"sequence": "TTTTTTTT"},
+            {"sequence": "AACCGGTT"},
+        ]
+    )
+
+    assert not evaluation.evaluation_eligible
+    assert evaluation.candidates[0].validation.violations[0].code == (
+        "candidate_outside_evaluation_pool"
+    )
+
+
+class _TinyMinimizationTask(BlackBoxOptimizationTask):
+    task_id = "test/tfbind8-minimization"
+
+
+def test_common_metrics_support_minimization_and_keep_the_report_schema(
+    tiny_tfbind8_dataset,
+) -> None:
+    data = tiny_tfbind8_dataset.load()
+    task = _TinyMinimizationTask(
+        tiny_tfbind8_dataset,
+        TFBind8DesignBenchProtocol(),
+        TFBind8ExactObjective(tiny_tfbind8_dataset),
+        score_field="normalized_e_score",
+        reference_scores=data["normalized_e_score"],
+        reference_scope="full_domain",
+        submission_size=3,
+        objective_direction="minimize",
+    )
+
+    evaluation = task.evaluate(
+        [
+            {"sequence": "AACCGGTT"},
+            {"sequence": "AAAAAAAC"},
+            {"sequence": "AAAAAAAA"},
+        ]
+    )
+
+    assert isinstance(evaluation, BlackBoxOptimizationEvaluation)
+    assert evaluation.metrics["best_score"] == 0.0
+    assert evaluation.best_candidate_index == 2
+    assert evaluation.metric_directions["best_score"] == "minimize"
+    assert evaluation.metric_directions["best_regret"] == "minimize"
+    assert {
+        "task_id",
+        "submission_validation",
+        "metrics",
+        "metric_directions",
+        "primary_metric",
+        "metric_direction",
+        "expected_candidates",
+        "submitted_candidates",
+        "valid_candidates",
+        "invalid_candidates",
+        "score_field",
+        "aggregation",
+        "summary_size",
+        "reference_scope",
+        "reference_size",
+        "best_candidate_index",
+        "best_objective_output",
+        "candidates",
+        "submission_valid",
+        "score",
+        "all_candidates_valid",
+        "evaluation_eligible",
+    } == set(evaluation.model_dump())

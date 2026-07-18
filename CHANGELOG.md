@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Generic `BlackBoxOptimizationTask` and `CandidatePoolRankingTask` contracts
+  with shared ordered-candidate metrics, finite-pool membership checks, and
+  scored-prefix reporting for submissions longer than the configured `K`.
+- Reproducible Hopper-v5 rollout builder and optional `hopper-sim` dependency
+  group for auditing legacy Hopper Controller policies without adding MuJoCo
+  to the base installation.
+- Hopper Controller Dataset preserving 500 raw stochastic returns and episode
+  outcomes for all 3,200 structured policies, with strict identity/summary
+  validation, an upload-ready release builder, lower-60% observation Protocol,
+  measured-mean Objective, and 32-policy candidate-pool ranking Task.
+
+### Changed
+
+- **Breaking:** concrete optimization Tasks now inherit the suite-independent
+  `BlackBoxOptimizationTask`; the former Design-Bench-specific base class and
+  import path were removed. Import the new base from `sci_modeling_bench.task`
+  or the package root.
+- **Breaking:** Superconductor is now
+  `SuperconductorCandidatePoolRankingTask`. Submit full rows from
+  `agent_input.candidates`; at least `submission_size` rows are accepted and
+  only that leading prefix is evaluated. The former black-box optimization
+  class and Task ID were removed.
+
 ## [0.3.0] - 2026-07-17
 
 ### Added

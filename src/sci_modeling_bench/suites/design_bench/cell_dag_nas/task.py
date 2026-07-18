@@ -5,10 +5,10 @@ from __future__ import annotations
 from datasets import Dataset as HFDataset
 
 from sci_modeling_bench.objective import Candidate
-from sci_modeling_bench.suites.design_bench.black_box_optimization import (
+from sci_modeling_bench.task import (
+    BlackBoxOptimizationTask,
     CandidateValidationReport,
     CandidateViolation,
-    DesignBenchBlackBoxOptimizationTask,
 )
 from sci_modeling_bench.suites.design_bench.cell_dag_nas.dataset import (
     CELL_DAG_NAS_CONFIG_NAME,
@@ -24,7 +24,7 @@ from sci_modeling_bench.suites.design_bench.cell_dag_nas.protocol import (
 
 
 class CellDAGNASBlackBoxOptimizationTask(
-    DesignBenchBlackBoxOptimizationTask[HFDataset]
+    BlackBoxOptimizationTask[HFDataset]
 ):
     """Select an ordered batch of canonical-unique NASBench-101 cells."""
 

@@ -54,7 +54,6 @@ class SuperconductorMeasuredPoolProtocol(Protocol[SuperconductorAgentInput]):
         visible_indices, candidate_indices, _ = self.partition(groups)
         observations = self._visible_observations(groups, visible_indices)
         candidate_columns = [
-            "composition_id",
             "composition",
             "representative_formula",
         ]

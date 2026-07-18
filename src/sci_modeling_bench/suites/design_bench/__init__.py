@@ -1,11 +1,13 @@
 """Modernized datasets derived from Design-Bench."""
 
-from sci_modeling_bench.suites.design_bench.black_box_optimization import (
+from sci_modeling_bench.task import (
     BlackBoxOptimizationEvaluation,
+    BlackBoxOptimizationTask,
     CandidateEvaluation,
+    CandidatePoolRankingEvaluation,
+    CandidatePoolRankingTask,
     CandidateValidationReport,
     CandidateViolation,
-    DesignBenchBlackBoxOptimizationTask,
 )
 from sci_modeling_bench.suites.design_bench.cell_dag_nas import (
     CELL_DAG_NAS_CONFIG_NAME,
@@ -18,6 +20,19 @@ from sci_modeling_bench.suites.design_bench.cell_dag_nas import (
     CellDAGNASExactObjective,
     CellDAGNASValidator,
 )
+from sci_modeling_bench.suites.design_bench.hopper_controller import (
+    DEFAULT_HOPPER_CONTROLLER_SOURCE,
+    EXPECTED_POLICY_COUNT,
+    EXPECTED_ROLLOUT_COUNT,
+    HOPPER_CONTROLLER_CONFIG_NAME,
+    HOPPER_CONTROLLER_DEFAULT_SPLIT,
+    HopperControllerAgentInput,
+    HopperControllerCandidatePoolRankingTask,
+    HopperControllerDataset,
+    HopperControllerLowerScoreProtocol,
+    HopperControllerMeasuredObjective,
+    HopperControllerValidator,
+)
 from sci_modeling_bench.suites.design_bench.superconductor import (
     DEFAULT_SUPERCONDUCTOR_SOURCE,
     DESCRIPTOR_NAMES,
@@ -25,7 +40,7 @@ from sci_modeling_bench.suites.design_bench.superconductor import (
     SUPERCONDUCTOR_CONFIG_NAME,
     SUPERCONDUCTOR_DEFAULT_SPLIT,
     SuperconductorAgentInput,
-    SuperconductorBlackBoxOptimizationTask,
+    SuperconductorCandidatePoolRankingTask,
     SuperconductorDataset,
     SuperconductorMeasuredObjective,
     SuperconductorMeasuredPoolProtocol,
@@ -56,19 +71,32 @@ from sci_modeling_bench.suites.design_bench.tfbind10_pho4 import (
 
 __all__ = [
     "BlackBoxOptimizationEvaluation",
+    "BlackBoxOptimizationTask",
     "CandidateEvaluation",
+    "CandidatePoolRankingEvaluation",
+    "CandidatePoolRankingTask",
     "CandidateValidationReport",
     "CandidateViolation",
     "CELL_DAG_NAS_CONFIG_NAME",
     "CELL_DAG_NAS_DEFAULT_SPLIT",
     "DEFAULT_CELL_DAG_NAS_SOURCE",
+    "DEFAULT_HOPPER_CONTROLLER_SOURCE",
     "DEFAULT_SUPERCONDUCTOR_SOURCE",
     "DEFAULT_TFBIND8_SOURCE",
     "DEFAULT_TFBIND10_PHO4_SOURCE",
     "DESCRIPTOR_NAMES",
-    "DesignBenchBlackBoxOptimizationTask",
     "ELEMENT_SYMBOLS",
+    "EXPECTED_POLICY_COUNT",
+    "EXPECTED_ROLLOUT_COUNT",
     "GLOBAL_BEST_MEAN_TEST_ACCURACY",
+    "HOPPER_CONTROLLER_CONFIG_NAME",
+    "HOPPER_CONTROLLER_DEFAULT_SPLIT",
+    "HopperControllerAgentInput",
+    "HopperControllerCandidatePoolRankingTask",
+    "HopperControllerDataset",
+    "HopperControllerLowerScoreProtocol",
+    "HopperControllerMeasuredObjective",
+    "HopperControllerValidator",
     "CellDAGNASBlackBoxOptimizationTask",
     "CellDAGNASDataset",
     "CellDAGNASDesignBenchProtocol",
@@ -77,7 +105,7 @@ __all__ = [
     "SUPERCONDUCTOR_CONFIG_NAME",
     "SUPERCONDUCTOR_DEFAULT_SPLIT",
     "SuperconductorAgentInput",
-    "SuperconductorBlackBoxOptimizationTask",
+    "SuperconductorCandidatePoolRankingTask",
     "SuperconductorDataset",
     "SuperconductorMeasuredObjective",
     "SuperconductorMeasuredPoolProtocol",

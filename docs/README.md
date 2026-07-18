@@ -23,6 +23,9 @@ and design benchmarks. It provides experimental `Dataset`, `Objective`,
   composition groups, lower-to-upper-tail modeling, and ordered pool ranking.
 - [CellDAG-NAS](suites/design-bench/cell-dag-nas.md) documents the canonical
   NASBench-101 graph-search Dataset and duplicate-aware Task.
+- [Hopper Controller](suites/design-bench/hopper-controller.md) documents
+  500-repeat stochastic controller measurements, a lower-score Protocol, and
+  finite-pool checkpoint prioritization.
 - [Candidate submission metrics](metrics/candidate-submission-metrics.md)
   defines the common score, regret, batch-quality, and ordered-ranking
   vocabulary for black-box optimization and related candidate Tasks.

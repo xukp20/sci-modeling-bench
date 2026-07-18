@@ -33,6 +33,10 @@ from sci_modeling_bench.exceptions import (
 from sci_modeling_bench.objective import Objective
 from sci_modeling_bench.protocol import Protocol
 from sci_modeling_bench.task import (
+    BlackBoxOptimizationEvaluation,
+    BlackBoxOptimizationTask,
+    CandidatePoolRankingEvaluation,
+    CandidatePoolRankingTask,
     ObjectiveBackedTask,
     SubmissionEvaluation,
     SubmissionValidationReport,
@@ -43,6 +47,10 @@ from sci_modeling_bench.task import (
 __all__ = [
     "AllowedValuesConstraint",
     "AlphabetConstraint",
+    "BlackBoxOptimizationEvaluation",
+    "BlackBoxOptimizationTask",
+    "CandidatePoolRankingEvaluation",
+    "CandidatePoolRankingTask",
     "Dataset",
     "DatasetLoadError",
     "DatasetMetadata",

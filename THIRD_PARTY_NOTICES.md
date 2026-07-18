@@ -6,13 +6,27 @@ apply to external datasets and publications.
 
 ## Design-Bench
 
-The TFBind8 integration reproduces the task semantics and preprocessing of
-Design-Bench:
+The TFBind8 integration reproduces task semantics and preprocessing from
+Design-Bench. The optional Hopper Controller builder also consumes the
+project's published policy arrays and follows its documented policy tensor
+order:
 
 - Project: https://github.com/brandontrabucco/design-bench
 - Referenced revision: `e52939588421b5433f6f2e9b359cf013c542bd89`
 - Copyright: Copyright (c) 2020 Brandon Trabucco
 - License: MIT License
+
+## Hopper Simulator
+
+Optional Hopper rollout generation uses Gymnasium and MuJoCo; neither is part
+of the base installation or redistributed by this repository:
+
+- Gymnasium: https://github.com/Farama-Foundation/Gymnasium, MIT License
+- MuJoCo: https://github.com/google-deepmind/mujoco, Apache License 2.0
+
+The generated rollout artifact is not bundled with the Python package. Its
+provenance metadata records the exact simulator versions, Hopper XML checksum,
+Design-Bench source checksums, policy execution recipe, and seeds.
 
 ## TFBind8 Data
 

@@ -8,8 +8,10 @@ ranking, screening, retrieval, and experimental-prioritization Tasks.
 ## Submission Contract
 
 A black-box optimization Task has a configured `submission_size` `N`, with a
-default of 128. An Agent submits exactly `N` candidates in descending predicted
-quality: position 1 is the candidate the Agent expects to be best.
+default of 128, and requires exactly `N` candidates. A candidate-pool ranking
+Task interprets the same configuration as the scored prefix `K`: it requires
+at least `K` candidates and ignores any suffix after the first `K`. In both
+cases position 1 is the candidate the Agent expects to be best.
 
 `submission_size` is selected when the Task is constructed. It is not chosen by
 an individual submission, and results produced with different values of `N`

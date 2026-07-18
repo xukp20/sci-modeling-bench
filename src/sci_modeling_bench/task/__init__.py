@@ -5,9 +5,25 @@ from sci_modeling_bench.task.evaluation import (
     SubmissionValidationReport,
     SubmissionViolation,
 )
+from sci_modeling_bench.task.ordered_candidate import (
+    BlackBoxOptimizationEvaluation,
+    BlackBoxOptimizationTask,
+    CandidatePoolRankingEvaluation,
+    CandidatePoolRankingTask,
+    CandidateEvaluation,
+    CandidateValidationReport,
+    CandidateViolation,
+)
 from sci_modeling_bench.task.task import ObjectiveBackedTask, Task
 
 __all__ = [
+    "BlackBoxOptimizationEvaluation",
+    "BlackBoxOptimizationTask",
+    "CandidatePoolRankingEvaluation",
+    "CandidatePoolRankingTask",
+    "CandidateEvaluation",
+    "CandidateValidationReport",
+    "CandidateViolation",
     "ObjectiveBackedTask",
     "SubmissionEvaluation",
     "SubmissionValidationReport",

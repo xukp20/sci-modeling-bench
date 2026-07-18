@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from datasets import Dataset as HFDataset
 
-from sci_modeling_bench.suites.design_bench.black_box_optimization import (
-    DesignBenchBlackBoxOptimizationTask,
-)
+from sci_modeling_bench.task import BlackBoxOptimizationTask
 from sci_modeling_bench.suites.design_bench.tfbind8.dataset import (
     DEFAULT_TFBIND8_REPO_ID,
     TFBIND8_CONFIG_NAME,
@@ -21,7 +19,7 @@ from sci_modeling_bench.suites.design_bench.tfbind8.protocol import (
 
 
 class TFBind8BlackBoxOptimizationTask(
-    DesignBenchBlackBoxOptimizationTask[HFDataset]
+    BlackBoxOptimizationTask[HFDataset]
 ):
     """Expose offline TFBind8 data and evaluate an ordered candidate batch."""
 

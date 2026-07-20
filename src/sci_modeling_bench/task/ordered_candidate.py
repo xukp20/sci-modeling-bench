@@ -167,6 +167,7 @@ class _OrderedCandidateTask(
     """Private metric and candidate-evaluation implementation."""
 
     default_submission_size = 128
+    default_summary_size = 5
     default_primary_metric = "best_k_mean"
 
     def __init__(
@@ -179,6 +180,7 @@ class _OrderedCandidateTask(
         reference_scores: Iterable[Real],
         reference_scope: ReferenceScope,
         submission_size: int = default_submission_size,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
         objective_direction: MetricDirection = "maximize",
     ) -> None:
@@ -194,6 +196,21 @@ class _OrderedCandidateTask(
             or submission_size < 1
         ):
             raise TaskError("submission_size must be a positive integer")
+        selected_summary_size = (
+            min(self.default_summary_size, submission_size)
+            if summary_size is None
+            else summary_size
+        )
+        if (
+            isinstance(selected_summary_size, bool)
+            or not isinstance(selected_summary_size, int)
+            or selected_summary_size < 1
+            or selected_summary_size > submission_size
+        ):
+            raise TaskError(
+                "summary_size must be a positive integer no greater than "
+                "submission_size"
+            )
         selected_primary = primary_metric or self.default_primary_metric
         if selected_primary not in COMMON_METRICS:
             raise TaskError(
@@ -225,7 +242,7 @@ class _OrderedCandidateTask(
 
         self._score_field = score_field
         self._submission_size = submission_size
-        self._summary_size = min(5, submission_size)
+        self._summary_size = selected_summary_size
         self._primary_metric = selected_primary
         self._objective_direction = objective_direction
         self._reference_scope = reference_scope
@@ -564,6 +581,7 @@ class CandidatePoolRankingTask(_OrderedCandidateTask[AgentInputT]):
         reference_scores: Iterable[Real],
         reference_scope: ReferenceScope = "evaluation_pool",
         submission_size: int = _OrderedCandidateTask.default_submission_size,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
         objective_direction: MetricDirection = "maximize",
     ) -> None:
@@ -575,6 +593,7 @@ class CandidatePoolRankingTask(_OrderedCandidateTask[AgentInputT]):
             reference_scores=reference_scores,
             reference_scope=reference_scope,
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
             objective_direction=objective_direction,
         )

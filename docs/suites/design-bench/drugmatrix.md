@@ -10,12 +10,13 @@ a deterministic control-relative evaluator.
 | Property | Default setting |
 |---|---|
 | Task | `DrugMatrixCandidatePoolRankingTask` |
-| Task ID | `design-bench/drugmatrix-<endpoint>-candidate-pool-ranking-v1` |
+| Task ID | `design-bench/drugmatrix-<endpoint>-candidate-pool-ranking-v2` |
 | Hub config / split | `drugmatrix_clinical_pathology` / `observations` |
 | Agent input | Measured control rows and labeled treatment conditions plus an unlabeled candidate pool |
-| Scored prefix | First 64 distinct measured treatment conditions |
+| Scored prefix | First 32 distinct measured treatment conditions |
 | Objective | Absolute endpoint deviation from matched controls |
 | Primary metric | `global_ndcg` |
+| Summary size | 5 conditions for the secondary `*_k_*` metrics |
 | Endpoint | One of `mchc`, `mch`, `creatinine`, `sodium`, `chloride`, or `phosphorus` |
 
 ## Scientific Object
@@ -205,12 +206,12 @@ agent_input = bundle.data
 
 submission = [
     {"condition_id": value}
-    for value in agent_input.candidates["condition_id"][:64]
+    for value in agent_input.candidates["condition_id"][:32]
 ]
 evaluation = task.evaluate(submission)
 ```
 
-The default submission contains 64 unique candidate IDs in predicted
+The default submission contains 32 unique candidate IDs in predicted
 descending order. The Task rejects unknown, duplicate, or malformed IDs and
 returns the standard `CandidatePoolRankingEvaluation`; no DrugMatrix-specific
 evaluation schema is introduced.
@@ -222,25 +223,28 @@ metrics remain available as secondary diagnostics.
 
 ### Metric audit
 
-The frozen audit uses `K=64`, seed `20260718`, and 500 independent random
-ordered submissions per endpoint. The visible RF diagnostic trains on 1,516
+The current random audit uses `N=32`, `K=5`, seed `20260720`, and 5,000
+independent random ordered submissions per endpoint. The earlier visible RF
+diagnostic used `N=64` and trains on 1,516
 labelable conditions constructed only from `agent_input.observations`; it uses
 Morgan fingerprints, basic RDKit descriptors, dose, duration, route, and sex.
-It is a reproducible task-difficulty diagnostic, not a bundled reference model.
+It remains evidence that the visible data contain predictive signal, but its
+raw scores are not directly comparable with the current `N=32` contract.
 
-| Endpoint | Random global NDCG, mean +/- std | Visible RF | Oracle order |
-|---|---:|---:|---:|
-| MCHC | 0.2845 +/- 0.0419 | 0.6019 | 1.0000 |
-| MCH | 0.3607 +/- 0.0373 | 0.4664 | 1.0000 |
-| Creatinine | 0.2873 +/- 0.0413 | 0.6407 | 1.0000 |
-| Sodium | 0.2646 +/- 0.0419 | 0.7449 | 1.0000 |
-| Chloride | 0.2751 +/- 0.0434 | 0.5321 | 1.0000 |
-| Phosphorus | 0.3021 +/- 0.0379 | 0.4929 | 1.0000 |
+| Endpoint | Random `global_ndcg`, mean +/- std | 10th--90th percentile |
+|---|---:|---:|
+| MCHC | 0.2188 +/- 0.0463 | 0.1692--0.2760 |
+| MCH | 0.3068 +/- 0.0474 | 0.2487--0.3696 |
+| Creatinine | 0.2311 +/- 0.0490 | 0.1719--0.2953 |
+| Sodium | 0.1971 +/- 0.0461 | 0.1463--0.2544 |
+| Chloride | 0.2125 +/- 0.0460 | 0.1589--0.2734 |
+| Phosphorus | 0.2463 +/- 0.0460 | 0.1915--0.3056 |
 
-The gap between random, the visible-data diagnostic, and the oracle ordering
-supports an ordered ranking metric while showing that none of the six endpoint
-settings is saturated by this simple baseline. MCH is intentionally retained
-despite its weaker signal rather than selecting only favorable endpoints.
+The random distributions are not saturated at `N=32`. The smaller scored
+prefix reduces one query from 16.4% to 8.2% of the 390-condition pool and
+better represents a finite follow-up list. MCH is intentionally retained
+despite its weaker historical model signal rather than selecting only
+favorable endpoints.
 
 ## Modeling Notes
 

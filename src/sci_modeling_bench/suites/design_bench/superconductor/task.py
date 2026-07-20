@@ -29,7 +29,7 @@ class SuperconductorCandidatePoolRankingTask(
 ):
     """Select and rank measured high-Tc composition groups from a finite pool."""
 
-    task_id = "design-bench/superconductor-candidate-pool-ranking-v1"
+    task_id = "design-bench/superconductor-candidate-pool-ranking-v2"
     default_primary_metric = "global_ndcg"
 
     def __init__(
@@ -38,7 +38,8 @@ class SuperconductorCandidatePoolRankingTask(
         *,
         protocol: SuperconductorMeasuredPoolProtocol | None = None,
         objective: SuperconductorMeasuredObjective | None = None,
-        submission_size: int = 128,
+        submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> None:
         selected_protocol = protocol or SuperconductorMeasuredPoolProtocol()
@@ -66,6 +67,7 @@ class SuperconductorCandidatePoolRankingTask(
             reference_scores=candidate_pool["critical_temp_k"],
             reference_scope="evaluation_pool",
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )
 
@@ -90,7 +92,8 @@ class SuperconductorCandidatePoolRankingTask(
         revision: str | None = None,
         *,
         token: str | None = None,
-        submission_size: int = 128,
+        submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> SuperconductorCandidatePoolRankingTask:
         dataset = SuperconductorDataset.from_hub(
@@ -102,6 +105,7 @@ class SuperconductorCandidatePoolRankingTask(
         return cls(
             dataset,
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )
 

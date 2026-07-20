@@ -16,6 +16,7 @@ pool; it does not accept arbitrary new weights or run MuJoCo during evaluation.
 | Scored prefix | First 32 distinct policies from the measured pool |
 | Objective | Mean of 500 frozen stochastic Hopper-v5 returns |
 | Primary metric | `global_ndcg` |
+| Summary size | 5 policies for the secondary `*_k_*` metrics |
 
 ## Dataset
 

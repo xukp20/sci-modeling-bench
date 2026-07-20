@@ -10,12 +10,13 @@ use the learned Random Forest oracle from the original Design-Bench task.
 | Property | Default setting |
 |---|---|
 | Task | `SuperconductorCandidatePoolRankingTask` |
-| Task ID | `design-bench/superconductor-candidate-pool-ranking-v1` |
+| Task ID | `design-bench/superconductor-candidate-pool-ranking-v2` |
 | Hub config / split | `superconductor` / `composition_groups` |
 | Agent input | Lower-temperature labeled groups and an upper-tail unlabeled pool |
-| Scored prefix | First 128 distinct candidates from the measured pool |
+| Scored prefix | First 32 distinct candidates from the measured pool |
 | Objective | Lookup of the retained group-median critical temperature |
 | Primary metric | `global_ndcg` |
+| Summary size | 5 materials for the secondary `*_k_*` metrics |
 
 ## Load the Dataset
 
@@ -187,7 +188,7 @@ the label-hidden pool.
 ## Candidate-Pool Ranking Task
 
 `SuperconductorCandidatePoolRankingTask` asks an Agent to select and rank
-measured candidate groups. `submission_size` defaults to 128. The submitted
+measured candidate groups. `submission_size` defaults to 32. The submitted
 list must contain at least that many legal, unique candidate-pool entries in
 descending predicted quality. Only the configured leading prefix is scored;
 any longer suffix is ignored.
@@ -203,7 +204,7 @@ task = SuperconductorCandidatePoolRankingTask.from_hub(
 bundle = task.build_input()
 agent_input = bundle.data
 
-submission = list(agent_input.candidates)[:128]
+submission = list(agent_input.candidates)[:32]
 evaluation = task.evaluate(submission)
 
 print(evaluation.score)                 # global_ndcg
@@ -211,8 +212,9 @@ print(evaluation.metrics["best_score"]) # kelvin
 print(evaluation.metrics["batch_mean"])
 ```
 
-The default primary metric is `global_ndcg`, because random 128-candidate
-batches already obtain high best-of-batch temperatures. The Task still returns
+The default primary metric is `global_ndcg`, because the 32-candidate prefix
+represents a short experimental priority list rather than a large parallel
+screen. The Task still returns
 all common metrics, including raw best, best-five mean, batch mean, pool regret,
 normalized enrichment, and reranking NDCG. The reference scope is
 `evaluation_pool`, so regret means regret against this measured pool, not the
@@ -225,25 +227,24 @@ For the frozen pool:
 | Pool mean | `90.4297 K` |
 | Pool maximum | `143 K` |
 | True top-5 mean | `137.74 K` |
-| True top-128 mean | `128.5665 K` |
+| True top-32 mean | `134.3139 K` |
 
-A fixed-seed 50,000-trial random baseline gives approximately:
+A 5,000-trial random baseline for the current `N=32`, `K=5` contract with seed
+`20260720` gives approximately:
 
 | Random ordered batch metric | Mean | 10th--90th percentile |
 |---|---:|---:|
-| `best_score` | `133.76 K` | `130.1--136.5 K` |
-| `best_k_mean` | `128.25 K` | `123.34--132.51 K` |
-| `batch_mean` | `90.43 K` | `88.97--91.92 K` |
-| `global_ndcg` | `0.304` | `0.276--0.334` |
-| `reranking_ndcg` | `0.762` | `0.726--0.801` |
-| `normalized_enrichment` | approximately `0` | `-0.038--0.039` |
+| `best_score` | `126.73 K` | `115.3--134.7 K` |
+| `best_k_mean` | `114.73 K` | `106.10--122.85 K` |
+| `batch_mean` | `90.48 K` | `87.45--93.58 K` |
+| `global_ndcg` | `0.280` | `0.226--0.336` |
+| `normalized_enrichment` | approximately `0` | `-0.068--0.072` |
 
-The same random sets, reordered by their trusted hidden temperatures, increase
-mean `global_ndcg` only from `0.3044` to `0.3995` while making
-`reranking_ndcg` equal to `1`. This shows that `global_ndcg` requires both a
-strong candidate set and a useful experimental priority order. It is the
-default primary metric; `best_score` is secondary because random batches are
-already close to the `143 K` pool maximum. The reference is explicitly the
+The previous `N=128` setting covered 4.3% of the measured pool in each query
+and placed substantial score weight on a long tail of proposed experiments.
+The 32-candidate contract retains candidate selection and useful ordering but
+focuses the score on a practical short list. `best_score` remains secondary
+because random batches can still approach the `143 K` pool maximum. The reference is explicitly the
 2,985-group measured candidate pool, so all regret and ranking claims are
 pool-relative rather than claims about the open-ended materials space.
 

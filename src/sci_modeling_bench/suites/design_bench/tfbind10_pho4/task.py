@@ -25,7 +25,8 @@ class TFBind10Pho4BlackBoxOptimizationTask(
 ):
     """Evaluate a high-affinity batch over the complete DNA 10-mer domain."""
 
-    task_id = "design-bench/tfbind10-pho4-black-box-optimization-v2"
+    task_id = "design-bench/tfbind10-pho4-black-box-optimization-v3"
+    default_summary_size = 16
     default_primary_metric = "normalized_enrichment"
 
     def __init__(
@@ -35,6 +36,7 @@ class TFBind10Pho4BlackBoxOptimizationTask(
         protocol: TFBind10Pho4LowerHalfProtocol | None = None,
         objective: TFBind10Pho4PosteriorObjective | None = None,
         submission_size: int = 128,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> None:
         selected_objective = objective or TFBind10Pho4PosteriorObjective(dataset)
@@ -50,6 +52,7 @@ class TFBind10Pho4BlackBoxOptimizationTask(
             reference_scores=landscape.scores[landscape.observed],
             reference_scope="full_domain",
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )
 
@@ -78,6 +81,7 @@ class TFBind10Pho4BlackBoxOptimizationTask(
         *,
         token: str | None = None,
         submission_size: int = 128,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> TFBind10Pho4BlackBoxOptimizationTask:
         dataset = TFBind10Pho4Dataset.from_hub(
@@ -89,5 +93,6 @@ class TFBind10Pho4BlackBoxOptimizationTask(
         return cls(
             dataset,
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )

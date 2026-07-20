@@ -11,12 +11,13 @@ learned ResNet oracle from the original Design-Bench UTR task.
 | Property | Default setting |
 |---|---|
 | Task | `UTRMRLCompositionalRankingTask` |
-| Task ID | `design-bench/utr-mrl-egfp-unmodified-compositional-ranking-v1` |
+| Task ID | `design-bench/utr-mrl-egfp-unmodified-compositional-ranking-v2` |
 | Hub config / split | `utr_mrl_egfp_unmodified` / `measurements` |
 | Agent input | Three labeled uAUG/Kozak groups and one unlabeled combination |
 | Scored prefix | First 128 distinct sequences from the measured pool |
 | Objective | Lookup of replicate-mean ribosome load |
-| Primary metric | `global_ndcg` |
+| Primary metric | `normalized_enrichment` |
+| Summary size | 16 sequences for the secondary `*_k_*` metrics |
 
 ## Load the Dataset
 
@@ -189,7 +190,7 @@ agent_input = bundle.data
 submission = list(agent_input.candidates)[:128]
 evaluation = task.evaluate(submission)
 
-print(evaluation.primary_metric)  # global_ndcg
+print(evaluation.primary_metric)  # normalized_enrichment
 print(evaluation.score)
 print(evaluation.metrics["normalized_enrichment"])
 ```
@@ -200,8 +201,10 @@ interpreted as optimization over arbitrary 5' UTRs.
 
 ## Metric Audit
 
-The primary metric is `global_ndcg`, which evaluates both candidate selection
-and submitted priority order. A fixed 128-candidate audit gave:
+The primary metric is `normalized_enrichment`, which evaluates the complete
+128-sequence experimental batch relative to random pool selection and the
+measured top-128 batch. `global_ndcg` remains an ordering diagnostic. A fixed
+128-candidate audit gave:
 
 | Baseline | Pool Spearman | `global_ndcg` | `normalized_enrichment` | True top-128 recovered |
 |---|---:|---:|---:|---:|
@@ -214,9 +217,12 @@ and submitted priority order. A fixed 128-candidate audit gave:
 The best lightweight baseline selected a batch with mean MRL `7.105`, while
 the measured pool's ideal top-128 mean is `7.918`. The Task therefore has a
 clear signal and a measurable benefit from sequence-aware representation, but
-is not saturated by the tested CPU baselines. `normalized_enrichment` and raw
-batch metrics remain secondary diagnostics; noisy single-candidate top-1 is
-not the primary score.
+is not saturated by the tested CPU baselines. Batch enrichment is primary
+because the reporter-library candidates are measured in parallel and the
+source release does not support treating the complete 128-way fine ordering
+as more reliable than batch quality. The current random audit gives
+`normalized_enrichment=-0.00057` on average with a
+`-0.05138--0.05108` 10th--90th percentile range.
 
 ## Trust Boundary
 

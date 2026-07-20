@@ -25,8 +25,9 @@ class UTRMRLCompositionalRankingTask(
 ):
     """Select and prioritize the held-out measured biological combination."""
 
-    task_id = "design-bench/utr-mrl-egfp-unmodified-compositional-ranking-v1"
-    default_primary_metric = "global_ndcg"
+    task_id = "design-bench/utr-mrl-egfp-unmodified-compositional-ranking-v2"
+    default_summary_size = 16
+    default_primary_metric = "normalized_enrichment"
 
     def __init__(
         self,
@@ -35,6 +36,7 @@ class UTRMRLCompositionalRankingTask(
         protocol: UTRMRLCompositionalProtocol | None = None,
         objective: UTRMRLMeasuredObjective | None = None,
         submission_size: int = 128,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> None:
         selected_protocol = protocol or UTRMRLCompositionalProtocol()
@@ -55,6 +57,7 @@ class UTRMRLCompositionalRankingTask(
             reference_scores=candidate_pool["mean_ribosome_load"],
             reference_scope="evaluation_pool",
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )
 
@@ -70,6 +73,7 @@ class UTRMRLCompositionalRankingTask(
         *,
         token: str | None = None,
         submission_size: int = 128,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> UTRMRLCompositionalRankingTask:
         dataset = UTRMRLDataset.from_hub(
@@ -81,5 +85,6 @@ class UTRMRLCompositionalRankingTask(
         return cls(
             dataset,
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )

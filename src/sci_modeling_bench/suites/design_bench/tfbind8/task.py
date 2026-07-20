@@ -23,7 +23,7 @@ class TFBind8BlackBoxOptimizationTask(
 ):
     """Expose offline TFBind8 data and evaluate an ordered candidate batch."""
 
-    task_id = "design-bench/tfbind8-black-box-optimization-v2"
+    task_id = "design-bench/tfbind8-black-box-optimization-v3"
     default_primary_metric = "best_k_mean"
 
     def __init__(
@@ -32,7 +32,8 @@ class TFBind8BlackBoxOptimizationTask(
         *,
         protocol: TFBind8DesignBenchProtocol | None = None,
         objective: TFBind8ExactObjective | None = None,
-        submission_size: int = 128,
+        submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> None:
         selected_objective = objective or TFBind8ExactObjective(dataset)
@@ -45,6 +46,7 @@ class TFBind8BlackBoxOptimizationTask(
             reference_scores=observations["normalized_e_score"],
             reference_scope="full_domain",
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )
 
@@ -56,7 +58,8 @@ class TFBind8BlackBoxOptimizationTask(
         revision: str | None = None,
         *,
         token: str | None = None,
-        submission_size: int = 128,
+        submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> TFBind8BlackBoxOptimizationTask:
         """Construct the default Task from a Hugging Face Dataset revision."""
@@ -70,5 +73,6 @@ class TFBind8BlackBoxOptimizationTask(
         return cls(
             dataset,
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )

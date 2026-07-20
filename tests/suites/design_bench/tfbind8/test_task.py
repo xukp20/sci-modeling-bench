@@ -73,6 +73,25 @@ def test_task_primary_metric_and_submission_size_are_configurable(
     assert evaluation.score == 0.75
 
 
+def test_task_summary_size_is_configurable(tiny_tfbind8_dataset) -> None:
+    task = TFBind8BlackBoxOptimizationTask(
+        tiny_tfbind8_dataset,
+        submission_size=3,
+        summary_size=2,
+    )
+
+    evaluation = task.evaluate(
+        [
+            {"sequence": "AAAAAAAA"},
+            {"sequence": "TTTTTTTT"},
+            {"sequence": "AACCGGTT"},
+        ]
+    )
+
+    assert evaluation.summary_size == 2
+    assert evaluation.metrics["best_k_mean"] == pytest.approx((1.0 + 0.75) / 2)
+
+
 @pytest.mark.parametrize("submission_size", [True, 0, 1.5])
 def test_submission_size_must_be_a_positive_integer(
     tiny_tfbind8_dataset,
@@ -82,6 +101,19 @@ def test_submission_size_must_be_a_positive_integer(
         TFBind8BlackBoxOptimizationTask(
             tiny_tfbind8_dataset,
             submission_size=submission_size,
+        )
+
+
+@pytest.mark.parametrize("summary_size", [True, 0, 4, 1.5])
+def test_summary_size_must_fit_submission(
+    tiny_tfbind8_dataset,
+    summary_size,
+) -> None:
+    with pytest.raises(TaskError, match="summary_size"):
+        TFBind8BlackBoxOptimizationTask(
+            tiny_tfbind8_dataset,
+            submission_size=3,
+            summary_size=summary_size,
         )
 
 

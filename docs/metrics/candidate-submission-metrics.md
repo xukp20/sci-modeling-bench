@@ -150,13 +150,13 @@ semantics and requires a new Task version even when the Dataset is unchanged.
 
 ## Task Defaults
 
-| Task | Submission size | Default primary metric | Reason |
-| --- | ---: | --- | --- |
-| TFBind8 | 128 | `best_k_mean` | More robust and less easily saturated than finding one high-scoring sequence |
-| TFBind10 Pho4 exhaustive-domain BBO | 128 | `normalized_enrichment` | Replicate audits favor robust batch quality over noisy single-sequence extremes |
-| Superconductor measured-pool ranking | 128 | `global_ndcg` | Best-at-128 is already close to saturation; the Task requires both selection and prioritization |
-| CellDAG-NAS | 128 | `best_k_mean` | More repeat-stable than top-1 while remaining focused on finding a small set of strong architectures |
-| Hopper Controller checkpoint ranking | 32 | `global_ndcg` | The measured pool is small enough for strong selection baselines, so ordered prioritization remains part of the score |
-| UTR MRL compositional ranking | 128 | `global_ndcg` | The Task tests transfer to a held-out biological factor combination and the ordering of selected sequences |
-| GFP measured-pool ranking | 128 | `global_ndcg` | Bright variants must be selected from an upper-tail pool and prioritized under measurement variation |
-| DrugMatrix endpoint ranking | 64 | `global_ndcg` | Each endpoint Task ranks treatment conditions by absolute control deviation rather than selecting one extreme observation |
+| Task | `N` | `K` | Default primary metric | Reason |
+| --- | ---: | ---: | --- | --- |
+| TFBind8 | 32 | 5 | `best_k_mean` | A compact proposal batch must contain several strong sequences rather than one lucky extreme |
+| CellDAG-NAS | 32 | 5 | `best_k_mean` | The score represents a small set of architectures selected for expensive follow-up training |
+| TFBind10 Pho4 exhaustive-domain BBO | 128 | 16 | `normalized_enrichment` | Replicate audits favor robust batch quality over noisy single-sequence extremes |
+| UTR MRL compositional ranking | 128 | 16 | `normalized_enrichment` | A reporter-library batch is evaluated as a parallel experimental design rather than a fine-grained full ordering |
+| GFP measured-pool ranking | 128 | 16 | `normalized_enrichment` | Batch enrichment is less sensitive than full ordering to weakly replicated upper-tail measurements |
+| Superconductor measured-pool ranking | 32 | 5 | `global_ndcg` | A short ordered list represents experimental prioritization without requiring a 128-material tail ranking |
+| Hopper Controller checkpoint ranking | 32 | 5 | `global_ndcg` | Sequential rollout prioritization makes the submitted order scientifically useful |
+| DrugMatrix endpoint ranking | 32 | 5 | `global_ndcg` | A short ordered follow-up list better matches the finite 390-condition toxicology pool |

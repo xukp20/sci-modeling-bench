@@ -28,7 +28,7 @@ class CellDAGNASBlackBoxOptimizationTask(
 ):
     """Select an ordered batch of canonical-unique NASBench-101 cells."""
 
-    task_id = "design-bench/cell-dag-nas-black-box-optimization-v1"
+    task_id = "design-bench/cell-dag-nas-black-box-optimization-v2"
     default_primary_metric = "best_k_mean"
 
     def __init__(
@@ -37,7 +37,8 @@ class CellDAGNASBlackBoxOptimizationTask(
         *,
         protocol: CellDAGNASDesignBenchProtocol | None = None,
         objective: CellDAGNASExactObjective | None = None,
-        submission_size: int = 128,
+        submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> None:
         selected_objective = objective or CellDAGNASExactObjective(dataset)
@@ -50,6 +51,7 @@ class CellDAGNASBlackBoxOptimizationTask(
             reference_scores=observations["mean_test_accuracy"],
             reference_scope="full_domain",
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )
 
@@ -86,7 +88,8 @@ class CellDAGNASBlackBoxOptimizationTask(
         revision: str | None = None,
         *,
         token: str | None = None,
-        submission_size: int = 128,
+        submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> CellDAGNASBlackBoxOptimizationTask:
         dataset = CellDAGNASDataset.from_hub(
@@ -98,5 +101,6 @@ class CellDAGNASBlackBoxOptimizationTask(
         return cls(
             dataset,
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )

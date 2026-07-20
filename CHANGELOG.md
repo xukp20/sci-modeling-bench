@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-20
+
+### Added
+
+- Ordered-candidate Tasks now accept a configurable `summary_size` for the
+  existing best-`K`, prefix-`K`, and regret metrics.
+
+### Changed
+
+- **Breaking:** Design-Bench Task defaults now use three shared scientific
+  evaluation profiles. TFBind8 and CellDAG-NAS use `N=32`, `K=5`, and
+  `best_k_mean`; TFBind10 Pho4, UTR MRL, and GFP use `N=128`, `K=16`, and
+  `normalized_enrichment`; Superconductor, Hopper Controller, and DrugMatrix
+  use `N=32`, `K=5`, and `global_ndcg`. UTR MRL and GFP therefore change
+  primary metric, while DrugMatrix changes from 64 to 32 scored candidates.
+  Use the new Task IDs and do not compare these scores with earlier default
+  settings on one leaderboard.
+- TFBind8, TFBind10 Pho4, CellDAG-NAS, Superconductor, UTR MRL, GFP, and all
+  six DrugMatrix endpoint Task IDs advance to a new version for the revised
+  scoring contracts. Hopper Controller retains its existing Task ID because
+  its default contract is unchanged.
+
 ## [0.6.0] - 2026-07-18
 
 ### Added
@@ -201,7 +223,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dataset artifacts are distributed separately from the Python package and
   retain their own source, citation, provenance, and license metadata.
 
-[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.3.0...v0.4.0

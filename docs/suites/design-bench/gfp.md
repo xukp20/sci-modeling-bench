@@ -11,12 +11,13 @@ nucleotide-derived duplicate rows from the original Design-Bench release.
 | Property | Default setting |
 |---|---|
 | Task | `GFPCandidatePoolRankingTask` |
-| Task ID | `design-bench/gfp-candidate-pool-ranking-v1` |
+| Task ID | `design-bench/gfp-candidate-pool-ranking-v2` |
 | Hub config / split | `gfp` / `protein_genotypes` |
 | Agent input | Lower-brightness protein, nucleotide, and barcode evidence plus an unlabeled upper pool |
 | Scored prefix | First 128 distinct protein sequences from the measured pool |
 | Objective | Lookup of author-provided protein median brightness |
-| Primary metric | `global_ndcg` |
+| Primary metric | `normalized_enrichment` |
+| Summary size | 16 proteins for the secondary `*_k_*` metrics |
 
 ## Quick Start
 
@@ -168,11 +169,13 @@ sequences, distinct, and members of the label-hidden evaluation pool. Candidate
 identity is the full canonical sequence. A violation in the scored prefix
 returns per-candidate diagnostics and no comparable aggregate metrics.
 
-The primary metric is `global_ndcg`, computed relative to the complete
-evaluation pool. It rewards both selecting bright proteins and placing the
-best selected proteins early. The result also reports `normalized_enrichment`,
-top-five and batch means, rank-sensitive diagnostics, and pool-relative
-regrets. See [candidate submission metrics](../../metrics/candidate-submission-metrics.md)
+The primary metric is `normalized_enrichment`, computed relative to random
+selection from the complete evaluation pool and its measured top-128 batch.
+It rewards a consistently bright experimental batch without requiring the
+weakly replicated upper tail to define a reliable 128-way ordering. The
+result also reports `global_ndcg`, top-16 and batch means, rank-sensitive
+diagnostics, and pool-relative regrets. See
+[candidate submission metrics](../../metrics/candidate-submission-metrics.md)
 for the common definitions.
 
 ## Difficulty Audit
@@ -190,7 +193,10 @@ submissions, an initial CPU audit produced:
 | Measured-label ordering | 1.000 | 1.000 | 1.000 |
 
 The simple models detect substantial signal but do not saturate the ranking
-metric. A random 80/20 split was rejected because the same one-hot Ridge
+problem. The current 5,000-trial random audit gives
+`normalized_enrichment=0.00005` on average with a
+`-0.02860--0.02879` 10th--90th percentile range; the previous table remains
+valid because `N=128` is unchanged. A random 80/20 split was rejected because the same one-hot Ridge
 baseline reached about 0.937 global NDCG, making it a weak test of scientific
 modeling.
 

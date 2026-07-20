@@ -31,12 +31,13 @@ def test_task_scores_selection_and_order(tiny_gfp_dataset) -> None:
     )
 
     assert evaluation.evaluation_eligible
-    assert evaluation.primary_metric == "global_ndcg"
+    assert evaluation.primary_metric == "normalized_enrichment"
+    assert evaluation.score == evaluation.metrics["normalized_enrichment"]
     assert evaluation.metrics["best_score"] == 10.0
     assert evaluation.metrics["rank_1_score"] == 8.0
     assert evaluation.metrics["batch_mean"] == 9.0
     assert evaluation.metrics["normalized_enrichment"] == 1.0
-    assert 0.0 < evaluation.score < 1.0
+    assert 0.0 < evaluation.metrics["global_ndcg"] < 1.0
 
 
 def test_task_accepts_agent_candidate_rows_and_ignores_suffix(

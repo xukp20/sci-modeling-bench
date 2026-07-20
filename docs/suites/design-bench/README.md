@@ -12,14 +12,14 @@ reproducible data path, tests, and setting documentation.
 
 | Setting | Scientific evidence | Task form | Submission | Primary metric |
 |---|---|---|---:|---|
-| [TFBind8](tfbind8.md) | Complete measured DNA 8-mer landscape | Black-box optimization | 128 | `best_k_mean` |
+| [TFBind8](tfbind8.md) | Complete measured DNA 8-mer landscape | Black-box optimization | 32 | `best_k_mean` |
 | [TFBind10 Pho4](tfbind10-pho4.md) | Four raw BET-seq count replicates over the complete 10-mer domain | Black-box optimization | 128 | `normalized_enrichment` |
-| [CellDAG-NAS](cell-dag-nas.md) | Three official NASBench-101 training repeats per canonical graph | Black-box optimization | 128 | `best_k_mean` |
-| [Superconductor](superconductor.md) | Measured critical temperatures grouped by composition | Candidate-pool ranking | 128 | `global_ndcg` |
+| [CellDAG-NAS](cell-dag-nas.md) | Three official NASBench-101 training repeats per canonical graph | Black-box optimization | 32 | `best_k_mean` |
+| [Superconductor](superconductor.md) | Measured critical temperatures grouped by composition | Candidate-pool ranking | 32 | `global_ndcg` |
 | [Hopper Controller](hopper-controller.md) | 500 frozen Hopper-v5 rollouts per policy | Candidate-pool ranking | 32 | `global_ndcg` |
-| [UTR MRL](utr-mrl.md) | Replicate-mean translation measurements | Candidate-pool ranking | 128 | `global_ndcg` |
-| [GFP](gfp.md) | Protein-genotype median brightness measurements | Candidate-pool ranking | 128 | `global_ndcg` |
-| [DrugMatrix](drugmatrix.md) | Individual-animal clinical-pathology measurements | Candidate-pool ranking | 64 per endpoint | `global_ndcg` |
+| [UTR MRL](utr-mrl.md) | Replicate-mean translation measurements | Candidate-pool ranking | 128 | `normalized_enrichment` |
+| [GFP](gfp.md) | Protein-genotype median brightness measurements | Candidate-pool ranking | 128 | `normalized_enrichment` |
+| [DrugMatrix](drugmatrix.md) | Individual-animal clinical-pathology measurements | Candidate-pool ranking | 32 per endpoint | `global_ndcg` |
 
 Black-box optimization requires exactly the configured number of distinct,
 valid candidates. Candidate-pool ranking accepts a longer ordered list but

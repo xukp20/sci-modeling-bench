@@ -24,7 +24,7 @@ def test_task_scores_ordered_condition_ids(tiny_drugmatrix_dataset) -> None:
     )
 
     assert task.task_id == (
-        "design-bench/drugmatrix-sodium-candidate-pool-ranking-v1"
+        "design-bench/drugmatrix-sodium-candidate-pool-ranking-v2"
     )
     assert evaluation.evaluation_eligible
     assert evaluation.primary_metric == "global_ndcg"

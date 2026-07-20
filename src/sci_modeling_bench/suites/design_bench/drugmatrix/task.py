@@ -31,7 +31,7 @@ class DrugMatrixCandidatePoolRankingTask(
 ):
     """Select and rank control-deviating measured treatment conditions."""
 
-    task_id = "design-bench/drugmatrix-candidate-pool-ranking-v1"
+    task_id = "design-bench/drugmatrix-candidate-pool-ranking-v2"
     default_primary_metric = "global_ndcg"
 
     def __init__(
@@ -41,7 +41,8 @@ class DrugMatrixCandidatePoolRankingTask(
         endpoint: str,
         protocol: DrugMatrixMeasuredPoolProtocol | None = None,
         objective: DrugMatrixEndpointObjective | None = None,
-        submission_size: int = 64,
+        submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> None:
         selected_protocol = protocol or DrugMatrixMeasuredPoolProtocol()
@@ -56,7 +57,7 @@ class DrugMatrixCandidatePoolRankingTask(
         score_field = f"{endpoint}_control_deviation"
         self._endpoint = endpoint
         self.task_id = (
-            f"design-bench/drugmatrix-{endpoint}-candidate-pool-ranking-v1"
+            f"design-bench/drugmatrix-{endpoint}-candidate-pool-ranking-v2"
         )
         self._smiles_by_condition_id = {
             str(identity): str(smiles)
@@ -78,6 +79,7 @@ class DrugMatrixCandidatePoolRankingTask(
             reference_scores=candidate_pool[score_field],
             reference_scope="evaluation_pool",
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )
 
@@ -117,7 +119,8 @@ class DrugMatrixCandidatePoolRankingTask(
         config_name: str | None = DRUGMATRIX_CONFIG_NAME,
         revision: str | None = DEFAULT_DRUGMATRIX_REVISION,
         token: str | None = None,
-        submission_size: int = 64,
+        submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> DrugMatrixCandidatePoolRankingTask:
         dataset = DrugMatrixDataset.from_hub(
@@ -130,5 +133,6 @@ class DrugMatrixCandidatePoolRankingTask(
             dataset,
             endpoint=endpoint,
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )

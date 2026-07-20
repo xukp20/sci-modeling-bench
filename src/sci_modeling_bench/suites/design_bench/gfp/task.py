@@ -23,8 +23,9 @@ from sci_modeling_bench.suites.design_bench.gfp.protocol import (
 class GFPCandidatePoolRankingTask(CandidatePoolRankingTask[GFPAgentInput]):
     """Select and rank measured upper-tail GFP protein candidates."""
 
-    task_id = "design-bench/gfp-candidate-pool-ranking-v1"
-    default_primary_metric = "global_ndcg"
+    task_id = "design-bench/gfp-candidate-pool-ranking-v2"
+    default_summary_size = 16
+    default_primary_metric = "normalized_enrichment"
 
     def __init__(
         self,
@@ -33,6 +34,7 @@ class GFPCandidatePoolRankingTask(CandidatePoolRankingTask[GFPAgentInput]):
         protocol: GFPLowerToHigherMeasuredPoolProtocol | None = None,
         objective: GFPMeasuredObjective | None = None,
         submission_size: int = 128,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> None:
         selected_protocol = protocol or GFPLowerToHigherMeasuredPoolProtocol()
@@ -52,6 +54,7 @@ class GFPCandidatePoolRankingTask(CandidatePoolRankingTask[GFPAgentInput]):
             reference_scores=candidate_pool["median_log10_brightness"],
             reference_scope="evaluation_pool",
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )
     def _candidate_identity(self, candidate: Candidate) -> Hashable:
@@ -72,6 +75,7 @@ class GFPCandidatePoolRankingTask(CandidatePoolRankingTask[GFPAgentInput]):
         *,
         token: str | None = None,
         submission_size: int = 128,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> GFPCandidatePoolRankingTask:
         dataset = GFPDataset.from_hub(
@@ -83,5 +87,6 @@ class GFPCandidatePoolRankingTask(CandidatePoolRankingTask[GFPAgentInput]):
         return cls(
             dataset,
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )

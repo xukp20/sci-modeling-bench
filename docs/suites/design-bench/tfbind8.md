@@ -7,7 +7,7 @@ SciModelingBench. It combines:
 - `TFBind8DesignBenchProtocol`, a deterministic offline-data view compatible
   with the Design-Bench TFBind8-Exact setting at the candidate-set level;
 - `TFBind8ExactObjective`, a trusted exact lookup for candidate evaluation;
-- `TFBind8BlackBoxOptimizationTask`, the default ordered 128-candidate
+- `TFBind8BlackBoxOptimizationTask`, the default ordered 32-candidate
   evaluation contract with `best_k_mean` as its primary metric.
 
 The package does not provide an optimization agent, benchmark runner,
@@ -18,12 +18,13 @@ query-budget enforcement, or process isolation.
 | Property | Default setting |
 |---|---|
 | Task | `TFBind8BlackBoxOptimizationTask` |
-| Task ID | `design-bench/tfbind8-black-box-optimization-v2` |
+| Task ID | `design-bench/tfbind8-black-box-optimization-v3` |
 | Hub config / split | `tfbind8` / `six6_ref_r1` |
 | Agent input | Lowest 50% of sequences with measured labels |
-| Submission | Exactly 128 distinct valid DNA 8-mers |
+| Submission | Exactly 32 distinct valid DNA 8-mers |
 | Objective | Exact lookup over the complete measured landscape |
 | Primary metric | `best_k_mean` |
+| Summary size | 5 sequences |
 
 ## End-to-End Use
 
@@ -262,11 +263,11 @@ semantics.
 `TFBind8BlackBoxOptimizationTask` combines the default Dataset, Protocol, and
 exact Objective:
 
-- `submission_size` defaults to 128 and is configurable at construction time;
+- `submission_size` defaults to 32 and is configurable at construction time;
 - candidates are ordered from the Agent's highest to lowest predicted quality;
 - every candidate must be legal, present in the exact landscape, and unique;
 - every eligible submission receives the complete common candidate metric set;
-- the default primary metric is `best_k_mean`, with `K=min(5, submission_size)`;
+- the default primary metric is `best_k_mean`, with `K=5`;
 - relative metrics use all 65,536 exact scores as a `full_domain` reference.
 
 Submission-level findings, such as `candidate_count_mismatch`, are represented
@@ -277,13 +278,14 @@ submissions retain diagnostics but do not receive official aggregate metrics.
 
 ```python
 task = TFBind8BlackBoxOptimizationTask.from_hub(
-    submission_size=128,
+    submission_size=32,
+    summary_size=5,
     primary_metric="best_k_mean",
 )
 visible = task.build_input().data
 submission = [
     {"sequence": sequence}
-    for sequence in visible["sequence"][:128]
+    for sequence in visible["sequence"][:32]
 ]
 result = task.evaluate(submission)
 
@@ -306,23 +308,20 @@ retains Design-Bench's best-of-submission interpretation as a secondary metric.
 
 ## Metric Choice and Modeling Notes
 
-The frozen metric audit used 50,000 uniformly sampled, without-replacement
-submissions of 128 sequences from the complete 65,536-sequence reference
-domain. The table reports the random mean and its 10th--90th percentile range;
-the oracle-rerank row uses the same random sets but orders each set by trusted
-score, so it diagnoses ordering rather than a usable method.
+The current metric audit used 5,000 uniformly sampled, without-replacement
+submissions of 32 sequences from the complete 65,536-sequence reference
+domain, with seed `20260720`. The table reports the random mean and its
+10th--90th percentile range.
 
-| Audit submission | `best_score` | `best_k_mean` | `batch_mean` | `normalized_enrichment` | `global_ndcg` | `reranking_ndcg` |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Random ordered | `0.9384` (`0.8871--0.9820`) | `0.8798` (`0.8357--0.9220`) | `0.4638` (`0.4443--0.4836`) | `0.0002` (`-0.0377--0.0383`) | `0.4714` (`0.4492--0.4940`) | `0.8778` (`0.8571--0.8991`) |
-| Oracle-rerank of the same sets | `0.9384` | `0.8798` | `0.4638` | `0.0002` | `0.5370` (`0.5154--0.5585`) | `1.0000` |
+| `best_score` | `best_k_mean` | `batch_mean` | `normalized_enrichment` | `global_ndcg` |
+| ---: | ---: | ---: | ---: | ---: |
+| `0.8671` (`0.7717--0.9577`) | `0.7533` (`0.6727--0.8314`) | `0.4638` (`0.4257--0.5031`) | `0.0001` (`-0.0721--0.0744`) | `0.4667` (`0.4229--0.5116`) |
 
-Random `best_score` has median `0.9445` and reaches `0.9820` at the 90th
-percentile, so a single high-scoring sequence is too easily dominated by
-batch-size luck. `best_k_mean` with `K=5` still rewards discovery of several
-strong sequences without changing the Task into a requirement that all 128
-candidates be high scoring. It is therefore the default primary metric.
-`batch_mean`, enrichment, and NDCG remain useful secondary diagnostics.
+The earlier 128-candidate audit gave random `best_k_mean=0.8798`, showing that
+a large proposal batch substantially rewarded coverage luck. Reducing the
+default to 32 lowers that random mean to `0.7533`, while `K=5` still requires
+several strong sequences rather than one extreme. `batch_mean`, enrichment,
+and NDCG remain secondary diagnostics.
 
 The release intentionally exposes strings, not a maintainer-selected feature
 matrix. Reasonable declared method choices include position-aware one-hot or

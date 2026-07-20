@@ -39,6 +39,7 @@ class HopperControllerCandidatePoolRankingTask(
         protocol: HopperControllerLowerScoreProtocol | None = None,
         objective: HopperControllerMeasuredObjective | None = None,
         submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> None:
         selected_protocol = protocol or HopperControllerLowerScoreProtocol()
@@ -58,6 +59,7 @@ class HopperControllerCandidatePoolRankingTask(
             reference_scores=candidate_pool["mean_return"],
             reference_scope="evaluation_pool",
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )
 
@@ -73,6 +75,7 @@ class HopperControllerCandidatePoolRankingTask(
         *,
         token: str | None = None,
         submission_size: int = 32,
+        summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> HopperControllerCandidatePoolRankingTask:
         dataset = HopperControllerDataset.from_hub(
@@ -84,5 +87,6 @@ class HopperControllerCandidatePoolRankingTask(
         return cls(
             dataset,
             submission_size=submission_size,
+            summary_size=summary_size,
             primary_metric=primary_metric,
         )

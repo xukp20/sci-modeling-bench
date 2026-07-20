@@ -19,7 +19,7 @@ def test_task_uses_enrichment_and_common_metrics(tiny_tfbind10_pho4_dataset) -> 
     )
 
     assert evaluation.evaluation_eligible
-    assert task.task_id == "design-bench/tfbind10-pho4-black-box-optimization-v2"
+    assert task.task_id == "design-bench/tfbind10-pho4-black-box-optimization-v3"
     assert evaluation.primary_metric == "normalized_enrichment"
     assert evaluation.score == 1.0
     assert evaluation.reference_scope == "full_domain"

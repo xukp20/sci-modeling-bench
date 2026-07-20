@@ -98,7 +98,7 @@ def test_tfbind8_manifest_describes_visible_table_and_task(
         submission_size=2,
     ).build_input()
     assert task_bundle.manifest.task_id == (
-        "design-bench/tfbind8-black-box-optimization-v2"
+        "design-bench/tfbind8-black-box-optimization-v3"
     )
 
 
@@ -218,5 +218,5 @@ def test_drugmatrix_manifest_supports_every_endpoint_task(
         submission_size=2,
     ).build_input()
     assert task_bundle.manifest.task_id == (
-        f"design-bench/drugmatrix-{endpoint}-candidate-pool-ranking-v1"
+            f"design-bench/drugmatrix-{endpoint}-candidate-pool-ranking-v2"
     )

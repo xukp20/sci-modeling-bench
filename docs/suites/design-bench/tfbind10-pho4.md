@@ -9,12 +9,13 @@ with raw replicate observations and a deterministic count-grounded evaluator.
 | Property | Default setting |
 |---|---|
 | Task | `TFBind10Pho4BlackBoxOptimizationTask` |
-| Task ID | `design-bench/tfbind10-pho4-black-box-optimization-v2` |
+| Task ID | `design-bench/tfbind10-pho4-black-box-optimization-v3` |
 | Hub config / split | `tfbind10_pho4` / `observations` |
 | Agent input | Raw replicate rows for the lower half of the measured landscape |
 | Submission | Exactly 128 distinct valid DNA 10-mers |
 | Objective | Deterministic posterior score derived from four count replicates |
 | Primary metric | `normalized_enrichment` |
+| Summary size | 16 sequences for the secondary `*_k_*` metrics |
 
 ## Scientific Object
 
@@ -146,7 +147,7 @@ finite-pool ranking interface.
 valid DNA 10-mers from the complete domain. Visible lower-half sequences remain
 legal submissions; they are not useful unless a method has a reason to resubmit
 them. Its Task ID is
-`design-bench/tfbind10-pho4-black-box-optimization-v2`. The Task reports the
+`design-bench/tfbind10-pho4-black-box-optimization-v3`. The Task reports the
 complete common candidate metric set and uses `normalized_enrichment` as its
 default primary metric:
 
@@ -193,14 +194,15 @@ values. The trusted posterior Objective pools the four bound libraries and
 counts the shared input library for replicates 3 and 4 once; an Agent must make
 its own corresponding data-handling and modeling choices from the visible rows.
 
-The v2 metric audit used 20,000 random 128-sequence submissions from the full
+The original metric-selection audit used 20,000 random 128-sequence
+submissions from the full
 domain with seed `20260718`. `Random unseen` excludes the visible lower-half
 identities and is the minimal baseline that uses the disclosed split. Mono- and
 dinucleotide Ridge models train only on the visible lower half. The validated-NN
 row is an external diagnostic landscape, not a baseline available through the
 Task input.
 
-| Method or diagnostic | `best_score` | `best_k_mean` | `batch_mean` | `normalized_enrichment` |
+| Method or diagnostic | `best_score` | historical `best_k_mean@5` | `batch_mean` | `normalized_enrichment` |
 | --- | ---: | ---: | ---: | ---: |
 | Full-domain random mean | `0.7301` | `0.5371` | `0.02536` | `0.00008` |
 | Full-domain random 10th--90th percentile | `0.5081--1.0017` | `0.4332--0.6563` | `0.00072--0.05009` | `-0.01545--0.01567` |
@@ -220,6 +222,12 @@ because it has full-domain random expectation zero and top-128-domain value one,
 while preserving the same ranking as `batch_mean` for this frozen landscape.
 Random unseen reaches about `0.106` by using the known lower-tail split alone;
 improvement beyond it reflects additional modeling within the unobserved half.
+
+Version 3 changes only the secondary summary size from 5 to 16. A 5,000-trial
+random audit of the current `N=128`, `K=16` contract with seed `20260720` gave
+`best_k_mean=0.38896` (`0.33363--0.44896` 10th--90th percentile) and
+`normalized_enrichment=0.00001` (`-0.01554--0.01571`). The batch primary,
+reference domain, Objective, and Dataset revision are unchanged.
 
 Useful method families include count-aware posterior or uncertainty estimates,
 position and k-mer sequence features, motif and interaction models, and

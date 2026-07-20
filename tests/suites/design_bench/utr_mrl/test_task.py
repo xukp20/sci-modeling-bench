@@ -25,7 +25,8 @@ def test_task_scores_ordered_candidate_selection(tiny_utr_mrl_dataset) -> None:
 
     assert isinstance(task, CandidatePoolRankingTask)
     assert evaluation.evaluation_eligible
-    assert evaluation.primary_metric == "global_ndcg"
+    assert evaluation.primary_metric == "normalized_enrichment"
+    assert evaluation.score == evaluation.metrics["normalized_enrichment"]
     assert evaluation.score == 1.0
     assert evaluation.metrics["best_score"] == 8.0
     assert evaluation.metrics["rank_1_score"] == 8.0

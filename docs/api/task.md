@@ -73,6 +73,7 @@ The Task's `primary_metric` can also be selected at construction time:
 ```python
 task = TFBind8BlackBoxOptimizationTask.from_hub(
     submission_size=64,
+    summary_size=16,
     primary_metric="global_ndcg",
 )
 ```
@@ -86,7 +87,7 @@ The result adds:
 | `valid_candidates` / `invalid_candidates` | Candidate-level validation counts |
 | `evaluation_eligible` | Whether official aggregate metrics were produced |
 | `score_field` | Objective output used as the scientific score |
-| `summary_size` | `K = min(5, submission_size)` used by `*_k_*` metrics |
+| `summary_size` | Configured `K` used by `*_k_*` metrics; concrete Tasks choose a default profile |
 | `reference_scope` / `reference_size` | Identity of the full domain or evaluation pool used by relative metrics |
 | `best_candidate_index` | Position of the best legal submitted candidate |
 | `best_objective_output` | Complete Objective output for that candidate |
@@ -113,10 +114,10 @@ identities, visible inputs, and scientific score fields.
 `CandidatePoolRankingTask` is the parallel contract for a finite, explicitly
 Agent-visible candidate pool. It reuses the candidate validation, Objective,
 reference, and common metric behavior above, but interprets
-`submission_size` as the scored prefix size `K`.
+`submission_size` as the scored prefix size `N`.
 
 An Agent submits candidate content in descending predicted quality. At least
-`K` candidates are required. Only the first `K` are validated, deduplicated,
+`N` candidates are required. Only the first `N` are validated, deduplicated,
 checked for pool membership, and sent to the Objective; a longer suffix is
 accepted but ignored. The evaluation adds `candidate_pool_size`,
 `evaluated_candidates`, and `ignored_candidates`.

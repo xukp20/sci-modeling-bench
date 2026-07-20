@@ -14,19 +14,20 @@ The integration combines:
 - `CellDAGNASExactObjective`: graph-invariant lookup returning the three test
   repeats and their arithmetic mean;
 - `CellDAGNASBlackBoxOptimizationTask`: duplicate-aware evaluation of exactly
-  128 submitted graph encodings.
+  32 submitted graph encodings.
 
 ## At a Glance
 
 | Property | Default setting |
 |---|---|
 | Task | `CellDAGNASBlackBoxOptimizationTask` |
-| Task ID | `design-bench/cell-dag-nas-black-box-optimization-v1` |
+| Task ID | `design-bench/cell-dag-nas-black-box-optimization-v2` |
 | Hub config / split | `cell_dag_nas` / `architectures` |
 | Agent input | Lowest 40% of canonical graphs with aliases and repeated outcomes |
-| Submission | Exactly 128 canonical-unique valid graph encodings |
+| Submission | Exactly 32 canonical-unique valid graph encodings |
 | Objective | Exact graph-invariant lookup over official NAS records |
 | Primary metric | `best_k_mean` |
+| Summary size | 5 architectures |
 
 ## End-to-End Use
 
@@ -152,10 +153,10 @@ The default primary metric is:
 best_k_mean
 ```
 
-For the default `N=128`, `K=min(5, N)=5`. `best_k_mean` is the mean test
+For the default `N=32`, `K=5`. `best_k_mean` is the mean test
 accuracy of the five truly best canonical graphs in the submitted set. It is
 more stable than a lucky top-1 while remaining focused on finding a small set
-of strong architectures rather than requiring all 128 candidates to be near
+of strong architectures rather than requiring all 32 candidates to be near
 optimal.
 
 The frozen table is an exhaustively known `full_domain` reference. The Task
@@ -182,13 +183,20 @@ Per-candidate results distinguish malformed graphs, out-of-table graphs, and
 canonical duplicates. Isomorphic aliases have the same candidate identity.
 They cannot occupy multiple slots in an eligible submission.
 
-A frozen audit used 5,000 random canonical-unique 128-graph submissions from
-the Task's full domain; random results below are reported as mean +/- standard
-deviation. Across the three official training repeats, the average
+A frozen audit used 5,000 random canonical-unique 128-graph submissions to
+compare metric stability across the three official training repeats. The
+average
 Spearman correlation with the three-repeat target was `0.517` for top-1 and
 `0.702` for best-five mean. This is why `best_k_mean`, rather than legacy
 `best_score`, is the default primary metric. `normalized_enrichment` remains a
 useful secondary measure of full-batch quality.
+
+For the current `N=32`, `K=5` contract, a separate 5,000-trial random audit
+with seed `20260720` gave `best_k_mean=0.92873` on average
+(`0.92505--0.93195` 10th--90th percentile) and
+`global_ndcg=0.94710` (`0.93003--0.95937`). These values are Task-relative;
+the high raw NDCG reflects the narrow accuracy range and is not used as the
+primary score.
 
 The historical Design-Bench value `NAS = 1.079 +/- 0.059` belongs to the
 different ResidualConfig-NAS task and is not a baseline for CellDAG-NAS.
@@ -202,7 +210,9 @@ complement is a split diagnostic rather than a comparable Agent baseline.
 Final candidates may be any legal, in-table canonical graph; all relative
 metrics use the 423,624-graph `full_domain` reference.
 
-The complete audit table is:
+The following table is the earlier `N=128` model audit and is retained as
+evidence about method signal, not as a baseline numerically comparable with
+the current `N=32` contract:
 
 | Method | `best_score` | `best_k_mean` | `batch_mean` | `normalized_enrichment` |
 | --- | ---: | ---: | ---: | ---: |

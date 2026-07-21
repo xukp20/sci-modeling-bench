@@ -159,4 +159,4 @@ semantics and requires a new Task version even when the Dataset is unchanged.
 | GFP measured-pool ranking | 128 | 16 | `normalized_enrichment` | Batch enrichment is less sensitive than full ordering to weakly replicated upper-tail measurements |
 | Superconductor measured-pool ranking | 32 | 5 | `global_ndcg` | A short ordered list represents experimental prioritization without requiring a 128-material tail ranking |
 | Hopper Controller checkpoint ranking | 32 | 5 | `global_ndcg` | Sequential rollout prioritization makes the submitted order scientifically useful |
-| DrugMatrix endpoint ranking | 32 | 5 | `global_ndcg` | A short ordered follow-up list better matches the finite 390-condition toxicology pool |
+| DrugMatrix endpoint ranking | 16 | 5 | `global_ndcg` | A compact ordered follow-up list supports more independent experiments against the finite 390-condition toxicology pool |

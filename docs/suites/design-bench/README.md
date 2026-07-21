@@ -19,7 +19,7 @@ reproducible data path, tests, and setting documentation.
 | [Hopper Controller](hopper-controller.md) | 500 frozen Hopper-v5 rollouts per policy | Candidate-pool ranking | 32 | `global_ndcg` |
 | [UTR MRL](utr-mrl.md) | Replicate-mean translation measurements | Candidate-pool ranking | 128 | `normalized_enrichment` |
 | [GFP](gfp.md) | Protein-genotype median brightness measurements | Candidate-pool ranking | 128 | `normalized_enrichment` |
-| [DrugMatrix](drugmatrix.md) | Individual-animal clinical-pathology measurements | Candidate-pool ranking | 32 per endpoint | `global_ndcg` |
+| [DrugMatrix](drugmatrix.md) | Individual-animal clinical-pathology measurements | Candidate-pool ranking | 16 per endpoint | `global_ndcg` |
 
 Black-box optimization requires exactly the configured number of distinct,
 valid candidates. Candidate-pool ranking accepts a longer ordered list but

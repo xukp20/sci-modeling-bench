@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-07-21
+
+### Changed
+
+- **Breaking:** DrugMatrix endpoint ranking now uses `N=16`, `K=5`, and
+  `global_ndcg` under v3 Task IDs. The smaller experimental shortlist changes
+  metric normalization and score distributions; v2 `N=32` scores are not
+  directly comparable.
+
 ## [0.7.0] - 2026-07-20
 
 ### Added
@@ -223,7 +232,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dataset artifacts are distributed separately from the Python package and
   retain their own source, citation, provenance, and license metadata.
 
-[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.4.0...v0.5.0

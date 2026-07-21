@@ -31,7 +31,7 @@ class DrugMatrixCandidatePoolRankingTask(
 ):
     """Select and rank control-deviating measured treatment conditions."""
 
-    task_id = "design-bench/drugmatrix-candidate-pool-ranking-v2"
+    task_id = "design-bench/drugmatrix-candidate-pool-ranking-v3"
     default_primary_metric = "global_ndcg"
 
     def __init__(
@@ -41,7 +41,7 @@ class DrugMatrixCandidatePoolRankingTask(
         endpoint: str,
         protocol: DrugMatrixMeasuredPoolProtocol | None = None,
         objective: DrugMatrixEndpointObjective | None = None,
-        submission_size: int = 32,
+        submission_size: int = 16,
         summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> None:
@@ -57,7 +57,7 @@ class DrugMatrixCandidatePoolRankingTask(
         score_field = f"{endpoint}_control_deviation"
         self._endpoint = endpoint
         self.task_id = (
-            f"design-bench/drugmatrix-{endpoint}-candidate-pool-ranking-v2"
+            f"design-bench/drugmatrix-{endpoint}-candidate-pool-ranking-v3"
         )
         self._smiles_by_condition_id = {
             str(identity): str(smiles)
@@ -119,7 +119,7 @@ class DrugMatrixCandidatePoolRankingTask(
         config_name: str | None = DRUGMATRIX_CONFIG_NAME,
         revision: str | None = DEFAULT_DRUGMATRIX_REVISION,
         token: str | None = None,
-        submission_size: int = 32,
+        submission_size: int = 16,
         summary_size: int | None = None,
         primary_metric: str | None = None,
     ) -> DrugMatrixCandidatePoolRankingTask:

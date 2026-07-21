@@ -26,7 +26,7 @@ from sci_modeling_bench.suites.design_bench import (
         (HopperControllerCandidatePoolRankingTask, 32, 5, "global_ndcg"),
         (UTRMRLCompositionalRankingTask, 128, 16, "normalized_enrichment"),
         (GFPCandidatePoolRankingTask, 128, 16, "normalized_enrichment"),
-        (DrugMatrixCandidatePoolRankingTask, 32, 5, "global_ndcg"),
+        (DrugMatrixCandidatePoolRankingTask, 16, 5, "global_ndcg"),
     ],
 )
 def test_design_bench_task_default_profiles(

@@ -10,10 +10,10 @@ a deterministic control-relative evaluator.
 | Property | Default setting |
 |---|---|
 | Task | `DrugMatrixCandidatePoolRankingTask` |
-| Task ID | `design-bench/drugmatrix-<endpoint>-candidate-pool-ranking-v2` |
+| Task ID | `design-bench/drugmatrix-<endpoint>-candidate-pool-ranking-v3` |
 | Hub config / split | `drugmatrix_clinical_pathology` / `observations` |
 | Agent input | Measured control rows and labeled treatment conditions plus an unlabeled candidate pool |
-| Scored prefix | First 32 distinct measured treatment conditions |
+| Scored prefix | First 16 distinct measured treatment conditions |
 | Objective | Absolute endpoint deviation from matched controls |
 | Primary metric | `global_ndcg` |
 | Summary size | 5 conditions for the secondary `*_k_*` metrics |
@@ -206,12 +206,12 @@ agent_input = bundle.data
 
 submission = [
     {"condition_id": value}
-    for value in agent_input.candidates["condition_id"][:32]
+    for value in agent_input.candidates["condition_id"][:16]
 ]
 evaluation = task.evaluate(submission)
 ```
 
-The default submission contains 32 unique candidate IDs in predicted
+The default submission contains 16 unique candidate IDs in predicted
 descending order. The Task rejects unknown, duplicate, or malformed IDs and
 returns the standard `CandidatePoolRankingEvaluation`; no DrugMatrix-specific
 evaluation schema is introduced.
@@ -223,25 +223,52 @@ metrics remain available as secondary diagnostics.
 
 ### Metric audit
 
-The current random audit uses `N=32`, `K=5`, seed `20260720`, and 5,000
+The current random audit uses `N=16`, `K=5`, seed `20260720`, and 5,000
 independent random ordered submissions per endpoint. The earlier visible RF
 diagnostic used `N=64` and trains on 1,516
 labelable conditions constructed only from `agent_input.observations`; it uses
 Morgan fingerprints, basic RDKit descriptors, dose, duration, route, and sex.
 It remains evidence that the visible data contain predictive signal, but its
-raw scores are not directly comparable with the current `N=32` contract.
+raw scores are not directly comparable with the current `N=16` contract.
 
 | Endpoint | Random `global_ndcg`, mean +/- std | 10th--90th percentile |
 |---|---:|---:|
-| MCHC | 0.2188 +/- 0.0463 | 0.1692--0.2760 |
-| MCH | 0.3068 +/- 0.0474 | 0.2487--0.3696 |
-| Creatinine | 0.2311 +/- 0.0490 | 0.1719--0.2953 |
-| Sodium | 0.1971 +/- 0.0461 | 0.1463--0.2544 |
-| Chloride | 0.2125 +/- 0.0460 | 0.1589--0.2734 |
-| Phosphorus | 0.2463 +/- 0.0460 | 0.1915--0.3056 |
+| MCHC | 0.1733 +/- 0.0530 | 0.1190--0.2348 |
+| MCH | 0.2669 +/- 0.0602 | 0.1942--0.3468 |
+| Creatinine | 0.1955 +/- 0.0582 | 0.1273--0.2746 |
+| Sodium | 0.1519 +/- 0.0509 | 0.0987--0.2159 |
+| Chloride | 0.1689 +/- 0.0523 | 0.1123--0.2365 |
+| Phosphorus | 0.2040 +/- 0.0544 | 0.1415--0.2740 |
 
-The random distributions are not saturated at `N=32`. The smaller scored
-prefix reduces one query from 16.4% to 8.2% of the 390-condition pool and
+### Current data-only reference baselines
+
+One frozen data-only pipeline is shared unchanged across all six
+endpoints. It derives visible treatment labels from matched public control
+rows, uses raw dose and duration as standardized numeric fields, and one-hot
+encodes the public CASRN, canonical SMILES, vehicle, sex, route, and study
+categories. SMILES remains an opaque category: the baseline does not use
+RDKit, Morgan or MACCS fingerprints, molecular descriptors, scaffolds, or
+hidden candidate measurements.
+
+The simple model is Ridge alpha 1. Three-fold visible-data CV selects from
+Ridge alpha `0.1`, `1`, `10`, and one fixed sparse XGBoost configuration.
+All values are official `global_ndcg` for the current `N=16` contract.
+
+| Endpoint | Random mean | Fixed Ridge alpha 1 | CV-selected | Selected model |
+|---|---:|---:|---:|---|
+| MCHC | 0.173257 | 0.548295 | **0.630254** | XGBoost |
+| MCH | 0.266876 | **0.444260** | 0.436404 | XGBoost |
+| Creatinine | 0.195459 | 0.709716 | **0.727785** | XGBoost |
+| Sodium | 0.151904 | 0.839711 | **0.857489** | Ridge alpha 10 |
+| Chloride | 0.168923 | **0.431076** | 0.404368 | XGBoost |
+| Phosphorus | 0.204023 | **0.532688** | 0.487150 | XGBoost |
+
+The selected model is retained even when its official score is below the fixed
+Ridge. CV uses visible labels only; using the trusted evaluator to switch the
+model would turn the hidden pool into a tuning set.
+
+The random distributions are not saturated at `N=16`. The smaller scored
+prefix reduces one submission from 8.2% to 4.1% of the 390-condition pool and
 better represents a finite follow-up list. MCH is intentionally retained
 despite its weaker historical model signal rather than selecting only
 favorable endpoints.

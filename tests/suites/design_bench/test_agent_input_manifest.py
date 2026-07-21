@@ -218,5 +218,5 @@ def test_drugmatrix_manifest_supports_every_endpoint_task(
         submission_size=2,
     ).build_input()
     assert task_bundle.manifest.task_id == (
-            f"design-bench/drugmatrix-{endpoint}-candidate-pool-ranking-v2"
+        f"design-bench/drugmatrix-{endpoint}-candidate-pool-ranking-v3"
     )

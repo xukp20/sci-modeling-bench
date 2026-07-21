@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="900" height="560" viewBox="0 0 900 560"
+     role="img" aria-labelledby="title desc">
+  <title id="title">SciModelingBench materials discovery tasks, enriched layout</title>
+  <desc id="desc">A scientific montage of superconductor composition ranking and context-aware DrugMatrix response ranking.</desc>
+
+  <metadata>
+    YBCO lattice and Meissner-effect photograph: Wikimedia Commons, CC BY-SA.
+    Sprague-Dawley rat photograph: Wikimedia Commons, CC BY-SA 2.0.
+    Molecular depictions were generated with RDKit from the official DrugMatrix
+    curated SMILES file. The 86-channel composition vector is original artwork.
+  </metadata>
+
+  <style>
+    .topic { font-family: 'Times New Roman', Times, serif; font-size: 15px; font-weight: 400; fill: #151515; }
+    .detail { font-family: 'Times New Roman', Times, serif; font-size: 13px; font-weight: 400; fill: #292d30; }
+    .small { font-family: 'Times New Roman', Times, serif; font-size: 11.5px; font-weight: 400; fill: #303438; }
+    .technical { font-family: Arial, Helvetica, sans-serif; font-size: 10.5px; font-weight: 400; fill: #303438; }
+  </style>
+
+  <defs>
+    <clipPath id="latticeCrop"><rect x="19" y="4" width="125" height="226"/></clipPath>
+    <clipPath id="meissnerCrop"><ellipse cx="302" cy="136" rx="145" ry="89"/></clipPath>
+    <clipPath id="ratCrop"><ellipse cx="646" cy="292" rx="158" ry="112"/></clipPath>
+    <marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0 0L7 3.5L0 7Z" fill="#555e65"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="560" fill="#ffffff"/>
+
+  <!-- Colored crystal structure and the observed superconducting phenomenon. -->
+  <g clip-path="url(#latticeCrop)">
+    <image x="19" y="4" width="125" height="226"
+           xlink:href="figure_sources/materials/ybcO-lattice-v2.svg"
+           preserveAspectRatio="xMidYMid meet"/>
+  </g>
+  <g clip-path="url(#meissnerCrop)">
+    <image x="151" y="39" width="302" height="194"
+           xlink:href="figure_sources/materials/meissner-levitation.jpg"
+           preserveAspectRatio="xMidYMid slice"/>
+  </g>
+  <ellipse cx="302" cy="136" rx="145" ry="89" fill="none" stroke="#c7d0d5" stroke-width="0.75"/>
+  <path d="M248 126 C270 104 333 104 356 126" fill="none" stroke="#486e8a" stroke-width="1.05" opacity="0.72"/>
+  <path d="M236 139 C267 111 338 111 369 139" fill="none" stroke="#9b6257" stroke-width="0.9" opacity="0.65"/>
+  <text x="82" y="245" text-anchor="middle" class="detail">YBCO unit cell</text>
+  <text x="302" y="245" text-anchor="middle" class="detail">Meissner levitation</text>
+
+  <!-- Composition formulas encoded into a sparse 86-element vector. -->
+  <g transform="translate(25 278)">
+    <text x="0" y="0" class="topic">Elemental composition</text>
+    <text x="0" y="33" font-family="'Times New Roman', Times, serif" font-size="15" fill="#25292c">YBa<tspan baseline-shift="sub" font-size="10">2</tspan>Cu<tspan baseline-shift="sub" font-size="10">3</tspan>O<tspan baseline-shift="sub" font-size="10">7</tspan></text>
+    <text x="126" y="33" font-family="'Times New Roman', Times, serif" font-size="15" fill="#25292c">Bi<tspan baseline-shift="sub" font-size="10">2</tspan>Sr<tspan baseline-shift="sub" font-size="10">2</tspan>CaCu<tspan baseline-shift="sub" font-size="10">2</tspan>O<tspan baseline-shift="sub" font-size="10">8</tspan></text>
+    <text x="278" y="33" font-family="'Times New Roman', Times, serif" font-size="15" fill="#25292c">HgBa<tspan baseline-shift="sub" font-size="10">2</tspan>Ca<tspan baseline-shift="sub" font-size="10">2</tspan>Cu<tspan baseline-shift="sub" font-size="10">3</tspan>O<tspan baseline-shift="sub" font-size="10">8</tspan></text>
+    <path d="M31 41V50 M183 41V50 M326 41V50" stroke="#9aa0a3" stroke-width="0.75"/>
+    <g transform="translate(0 53)">
+      {{ELEMENT_VECTOR_CELLS}}
+    </g>
+    <path d="M353 63H379" stroke="#555e65" stroke-width="1.05" marker-end="url(#arrow)"/>
+    <g transform="translate(390 49)">
+      <circle cx="4" cy="22" r="3.4" fill="#87906b"/>
+      <circle cx="13" cy="14" r="3.8" fill="#a77d4c"/>
+      <circle cx="23" cy="5" r="4.2" fill="#3f6780"/>
+      <path d="M1 28L28 1" stroke="#555e65" stroke-width="0.8"/>
+      <text x="2" y="44" class="small">T<tspan baseline-shift="sub" font-size="8.5">c</tspan> rank</text>
+    </g>
+    <g class="technical">
+      <text x="30" y="91">O</text>
+      <text x="77" y="91">Ca</text>
+      <text x="112" y="91">Cu</text>
+      <text x="151" y="91">Y</text>
+      <text x="219" y="91">Ba</text>
+      <text x="325" y="91">Bi</text>
+    </g>
+    <text x="0" y="119" class="detail">86-element fractional encoding</text>
+  </g>
+
+  <!-- Drug structures converge on the measured in-vivo response context. -->
+  <g>
+    <image x="432" y="1" width="142" height="122" xlink:href="figure_sources/materials/acetaminophen-v2.svg" preserveAspectRatio="xMidYMid meet"/>
+    <image x="557" y="1" width="142" height="122" xlink:href="figure_sources/materials/ibuprofen-v2.svg" preserveAspectRatio="xMidYMid meet"/>
+    <image x="682" y="1" width="142" height="122" xlink:href="figure_sources/materials/caffeine-v2.svg" preserveAspectRatio="xMidYMid meet"/>
+    <text x="503" y="128" text-anchor="middle" class="detail">acetaminophen</text>
+    <text x="628" y="128" text-anchor="middle" class="detail">ibuprofen</text>
+    <text x="753" y="128" text-anchor="middle" class="detail">caffeine</text>
+    <path d="M503 136 C520 148 572 151 626 158" fill="none" stroke="#6e777d" stroke-width="0.85"/>
+    <path d="M628 136V158" fill="none" stroke="#6e777d" stroke-width="0.85"/>
+    <path d="M753 136 C736 148 684 151 630 158" fill="none" stroke="#6e777d" stroke-width="0.85"/>
+    <path d="M628 158V177" stroke="#555e65" stroke-width="1.1" marker-end="url(#arrow)"/>
+    <text x="642" y="164" class="small">treatment</text>
+  </g>
+
+  <g clip-path="url(#ratCrop)">
+    <image x="480" y="174" width="332" height="238"
+           xlink:href="figure_sources/materials/sprague-dawley-rat.jpg"
+           preserveAspectRatio="xMidYMid slice"/>
+  </g>
+  <ellipse cx="646" cy="292" rx="158" ry="112" fill="none" stroke="#c7d0d5" stroke-width="0.75"/>
+  <text x="646" y="421" text-anchor="middle" class="topic">measured clinical-pathology response</text>
+
+  <!-- Journal-style category caption. -->
+  <g transform="translate(38 464)" fill="#111111" font-family="'Times New Roman', Times, serif">
+    <text x="0" y="0" font-size="18.5" font-style="italic" font-weight="700">Materials Discovery:</text>
+    <text x="199" y="0" font-size="14.3">superconducting T<tspan baseline-shift="sub" font-size="10">c</tspan> ranking from composition and drug-response ranking from measured rat studies.</text>
+  </g>
+</svg>

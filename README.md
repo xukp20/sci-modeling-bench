@@ -46,6 +46,14 @@ Pho4, Superconductor, CellDAG-NAS, Hopper Controller, UTR MRL, GFP, and
 DrugMatrix Tasks. The measured-pool integrations retain source observations
 and avoid treating legacy learned Design-Bench oracles as experimental truth.
 
+<p align="center">
+  <img
+    src="https://raw.githubusercontent.com/xukp20/sci-modeling-bench/main/assets/sci-modeling-bench-task-montage.png"
+    alt="SciModelingBench task overview: biomolecular design, superconducting materials, preclinical toxicology, neural architecture design, and embodied control"
+    width="100%"
+  >
+</p>
+
 ## Installation
 
 SciModelingBench requires Python 3.10 or later.

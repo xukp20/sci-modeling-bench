@@ -28,6 +28,16 @@ The generated rollout artifact is not bundled with the Python package. Its
 provenance metadata records the exact simulator versions, Hopper XML checksum,
 Design-Bench source checksums, policy execution recipe, and seeds.
 
+## Computational Systems Overview Figure
+
+The computational-systems montage uses the official NASBench-101 architecture
+overview from `google-research/nasbench` (Apache License 2.0) as the structural
+reference for an original vector redraw. It also uses an original vector redraw
+of the Hopper-v5 action diagram and three frames from the official Gymnasium
+documentation rollout (MIT License). Source URLs, task relevance, and redraw
+boundaries are recorded in
+`assets/references/computational-systems/README.md`.
+
 ## TFBind8 Data
 
 The TFBind8 observations originate from the protein-binding microarray data
@@ -77,3 +87,17 @@ and published descriptor features from UCI dataset 464:
 The Hugging Face manifest and provenance report record the source archive and
 member checksums, grouping transformation, retained observations, and artifact
 checksum.
+
+## Materials Overview Figure
+
+The materials-discovery montage uses openly reusable scientific imagery:
+
+- `Ybco002.svg` by Rswarbrick, Wikimedia Commons, CC BY-SA 3.0 / GFDL;
+- `Meissner effect p1390048.jpg` by Mai-Linh Doan / David Monniaux,
+  Wikimedia Commons, CC BY-SA 3.0 and compatible earlier licenses;
+- `SpragueDawleyRat.jpg` by Jean-Etienne Minh-Duy Poirrier, Wikimedia Commons,
+  CC BY-SA 2.0.
+
+The molecule depictions are generated locally with RDKit from SMILES present
+in the official CEBS DrugMatrix curated-chemicals table. Figure-source details
+and links are recorded in `assets/figure_sources/materials/README.md`.

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="250" viewBox="0 0 300 250">
+  <title>Hopper-v5 action-space structure</title>
+  <desc>A faithful vector redraw of the Gymnasium Hopper-v5 action-space diagram, preserving the torso, thigh, leg and foot geometry, controlled joints 0, 1 and 2, coordinate directions, and joint-type legend.</desc>
+  <defs>
+    <marker id="blackArrow" markerWidth="6" markerHeight="6" refX="5.2" refY="3" orient="auto">
+      <path d="M0 0L6 3L0 6Z" fill="#252a2e"/>
+    </marker>
+    <marker id="grayArrow" markerWidth="6" markerHeight="6" refX="5.2" refY="3" orient="auto">
+      <path d="M0 0L6 3L0 6Z" fill="#687078"/>
+    </marker>
+    <style>
+      .tech { font-family: Arial, Helvetica, sans-serif; fill: #23282c; }
+      .label { font-size: 10.5px; }
+      .small { font-size: 8.8px; }
+      .blueBody { fill: #bdd2ef; stroke: #3d72b7; stroke-width: 1.65; stroke-linejoin: round; }
+      .blueLine { fill: none; stroke: #3d72b7; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+      .jointFill { fill: #dce7f5; stroke: #3d72b7; stroke-width: 1.5; }
+      .axisLine { fill: none; stroke: #252a2e; stroke-width: 1.05; marker-end: url(#blackArrow); }
+      .legendShape { fill: #efefed; stroke: #6a7074; stroke-width: 1.3; }
+    </style>
+  </defs>
+  <rect width="300" height="250" fill="#ffffff"/>
+
+  <!-- Hopper-v5 articulated body: torso, thigh, leg, foot. -->
+  <g transform="translate(9 10)">
+    <!-- Torso and controlled hinge 0.  The upper semicircular yoke is the
+         same hinge symbol used by the source figure, not a decorative ring. -->
+    <path d="M17 9L58 32L51 45L10 23Z" class="blueBody"/>
+    <path d="M49 35L57 39L54 48L46 44Z" class="jointFill"/>
+    <path d="M45 58A24 24 0 0 1 93 58L82 58A13 13 0 0 0 56 58Z" class="blueBody"/>
+    <circle cx="69" cy="58" r="13" class="jointFill"/>
+    <circle cx="69" cy="58" r="7.2" fill="#a8c2e4" stroke="#3d72b7" stroke-width="1.4"/>
+    <text x="69" y="61.5" text-anchor="middle" class="tech label">0</text>
+
+    <!-- Thigh and controlled hinge 1. -->
+    <rect x="65" y="70" width="9" height="9" rx="1" class="jointFill"/>
+    <path d="M65 78L60 105L72 111L80 81L75 76Z" class="blueBody"/>
+    <path d="M48 125A24 24 0 0 1 96 125L85 125A13 13 0 0 0 59 125Z" class="blueBody"/>
+    <circle cx="72" cy="125" r="13" class="jointFill"/>
+    <circle cx="72" cy="125" r="7.2" fill="#a8c2e4" stroke="#3d72b7" stroke-width="1.4"/>
+    <text x="72" y="128.5" text-anchor="middle" class="tech label">1</text>
+
+    <!-- Lower leg, controlled hinge 2, and the horizontal foot. -->
+    <rect x="67" y="137" width="9" height="9" rx="1" class="jointFill"/>
+    <path d="M67 144L42 179L53 188L79 151L78 145Z" class="blueBody"/>
+    <path d="M24 198A24 24 0 0 1 72 198L61 198A13 13 0 0 0 35 198Z" class="blueBody"/>
+    <circle cx="48" cy="198" r="13" class="jointFill"/>
+    <circle cx="48" cy="198" r="7.2" fill="#a8c2e4" stroke="#3d72b7" stroke-width="1.4"/>
+    <text x="48" y="201.5" text-anchor="middle" class="tech label">2</text>
+    <rect x="43" y="210" width="10" height="8" rx="1" class="jointFill"/>
+    <path d="M31 217L99 219L99 234L29 232Z" class="blueBody"/>
+
+    <!-- Local coordinate and global hinge directions copied from the official symbolic language. -->
+    <path d="M104 31V8" class="axisLine"/>
+    <path d="M104 31H126" class="axisLine"/>
+    <text x="97" y="9" class="tech small">z</text>
+    <text x="127" y="34" class="tech small">x</text>
+    <path d="M101 66C108 57 121 56 129 62" fill="none" stroke="#687078" stroke-width="1.15" marker-end="url(#grayArrow)"/>
+    <path d="M130 71C123 80 110 81 102 75" fill="none" stroke="#687078" stroke-width="1.15" marker-end="url(#grayArrow)"/>
+    <text x="133" y="71" class="tech small">y</text>
+  </g>
+
+  <!-- Two-by-two legend: joint identity/type on the left and global motion
+       directions on the right.  Every symbol corresponds to one used in the
+       articulated body or its coordinate annotations. -->
+  <g transform="translate(151 11)">
+    <text x="74" y="15" text-anchor="middle" class="tech" font-size="15">Legend</text>
+
+    <!-- Movable hinge: the white axis-id disc and upper yoke match joints
+         0, 1, and 2 in the blue Hopper body. -->
+    <g transform="translate(5 37)">
+      <path d="M6 27A21 21 0 0 1 48 27L39 27A12 12 0 0 0 15 27Z" class="legendShape"/>
+      <circle cx="27" cy="27" r="12" fill="#ffffff" stroke="#6a7074" stroke-width="1.3"/>
+      <circle cx="27" cy="27" r="6" fill="#ffffff" stroke="#6a7074" stroke-width="1"/>
+      <text x="27" y="30" text-anchor="middle" class="tech small">id</text>
+      <text x="27" y="54" text-anchor="middle" class="tech label">Hinge joint</text>
+      <text x="27" y="65" text-anchor="middle" class="tech small">(axis id)</text>
+    </g>
+
+    <!-- Global slide: only the x/y coordinate axes, as in the source. -->
+    <g transform="translate(91 42)">
+      <path d="M4 23H37" class="axisLine"/>
+      <path d="M4 23V0" class="axisLine"/>
+      <text x="39" y="26" class="tech small">x</text>
+      <text x="0" y="1" class="tech small">y</text>
+      <text x="21" y="54" text-anchor="middle" class="tech label">Slide joint</text>
+      <text x="21" y="65" text-anchor="middle" class="tech small">(global)</text>
+    </g>
+
+    <!-- Fixed hinge: identical yoke, solid black center. -->
+    <g transform="translate(5 137)">
+      <path d="M6 27A21 21 0 0 1 48 27L39 27A12 12 0 0 0 15 27Z" class="legendShape"/>
+      <circle cx="27" cy="27" r="12" fill="#111111" stroke="#6a7074" stroke-width="1.3"/>
+      <text x="27" y="56" text-anchor="middle" class="tech label">Hinge joint</text>
+      <text x="27" y="67" text-anchor="middle" class="tech small">(fixed)</text>
+    </g>
+
+    <!-- Global hinge rotation: curved z arrows with no extra center joint. -->
+    <g transform="translate(91 137)">
+      <path d="M3 22C10 9 29 8 39 17" fill="none" stroke="#687078" stroke-width="1.3" marker-end="url(#grayArrow)"/>
+      <path d="M40 27C33 40 14 41 4 32" fill="none" stroke="#687078" stroke-width="1.3" marker-end="url(#grayArrow)"/>
+      <text x="45" y="25" class="tech small">z</text>
+      <text x="22" y="56" text-anchor="middle" class="tech label">Hinge joint</text>
+      <text x="22" y="67" text-anchor="middle" class="tech small">(global)</text>
+    </g>
+  </g>
+</svg>

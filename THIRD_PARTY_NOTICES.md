@@ -34,9 +34,18 @@ The computational-systems montage uses the official NASBench-101 architecture
 overview from `google-research/nasbench` (Apache License 2.0) as the structural
 reference for an original vector redraw. It also uses an original vector redraw
 of the Hopper-v5 action diagram and three frames from the official Gymnasium
-documentation rollout (MIT License). Source URLs, task relevance, and redraw
-boundaries are recorded in
-`assets/references/computational-systems/README.md`.
+documentation rollout (MIT License):
+
+- NASBench-101: https://github.com/google-research/nasbench
+- Gymnasium Hopper-v5: https://gymnasium.farama.org/environments/mujoco/hopper/
+
+## Biomolecular Overview Figure
+
+The biomolecular montage uses structure images for RCSB PDB entries
+[1A0A](https://www.rcsb.org/structure/1A0A) and
+[1GFL](https://www.rcsb.org/structure/1GFL), available under the RCSB CC0 image
+policy. Its ribosome illustration is adapted from LadyofHats' public-domain
+[Ribosome mRNA translation en.svg](https://commons.wikimedia.org/wiki/File:Ribosome_mRNA_translation_en.svg).
 
 ## TFBind8 Data
 
@@ -98,6 +107,11 @@ The materials-discovery montage uses openly reusable scientific imagery:
 - `SpragueDawleyRat.jpg` by Jean-Etienne Minh-Duy Poirrier, Wikimedia Commons,
   CC BY-SA 2.0.
 
-The molecule depictions are generated locally with RDKit from SMILES present
-in the official CEBS DrugMatrix curated-chemicals table. Figure-source details
-and links are recorded in `assets/figure_sources/materials/README.md`.
+The source pages are:
+
+- https://commons.wikimedia.org/wiki/File:Ybco002.svg
+- https://commons.wikimedia.org/wiki/File:Meissner_effect_p1390048.jpg
+- https://commons.wikimedia.org/wiki/File:SpragueDawleyRat.jpg
+
+The molecule depictions were generated locally with RDKit from SMILES present
+in the official CEBS DrugMatrix curated-chemicals table.

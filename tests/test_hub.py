@@ -15,7 +15,13 @@ def test_hub_repository_pins_all_access_to_resolved_revision(
         def __init__(self, token=None) -> None:
             self.token = token
 
-        def dataset_info(self, repo_id: str, revision: str | None = None):
+        def dataset_info(
+            self,
+            repo_id: str,
+            revision: str | None = None,
+            timeout: float | None = None,
+        ):
+            assert timeout == 30.0
             calls.append((repo_id, revision))
             return SimpleNamespace(sha="resolved-sha")
 
@@ -49,3 +55,20 @@ def test_hub_repository_pins_all_access_to_resolved_revision(
         "six6_ref_r1",
         streaming=False,
     ) == "loaded"
+
+
+def test_hub_repository_uses_full_commit_without_metadata_request(monkeypatch) -> None:
+    class FailApi:
+        def __init__(self, token=None) -> None:
+            raise AssertionError("full commit revisions must not query Hub metadata")
+
+    monkeypatch.setattr(_hub, "HfApi", FailApi)
+    revision = "0123456789abcdef0123456789abcdef01234567"
+
+    repository = _hub.HubDatasetRepository.resolve(
+        "organization/dataset",
+        revision=revision,
+    )
+
+    assert repository.requested_revision == revision
+    assert repository.resolved_revision == revision

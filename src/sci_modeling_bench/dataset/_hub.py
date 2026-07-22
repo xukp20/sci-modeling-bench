@@ -4,12 +4,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+import re
 from typing import Any, Protocol
 
 from datasets import load_dataset
 from huggingface_hub import HfApi, hf_hub_download
 
 from sci_modeling_bench.exceptions import DatasetLoadError
+
+_COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
+HUB_METADATA_TIMEOUT_SEC = 30.0
 
 
 class DatasetRepository(Protocol):
@@ -46,8 +50,19 @@ class HubDatasetRepository:
         *,
         token: str | None = None,
     ) -> HubDatasetRepository:
+        if revision is not None and _COMMIT_SHA.fullmatch(revision):
+            return cls(
+                repo_id=repo_id,
+                requested_revision=revision,
+                resolved_revision=revision,
+                token=token,
+            )
         try:
-            info = HfApi(token=token).dataset_info(repo_id, revision=revision)
+            info = HfApi(token=token).dataset_info(
+                repo_id,
+                revision=revision,
+                timeout=HUB_METADATA_TIMEOUT_SEC,
+            )
         except Exception as exc:
             raise DatasetLoadError(
                 f"failed to resolve Hugging Face dataset {repo_id!r}"

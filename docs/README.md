@@ -16,6 +16,7 @@ agent-visible inputs, trusted evaluation, and Task-level scoring.
 | Trusted candidate evaluation | [Objective API](api/objective.md) |
 | Agent-visible inputs | [Protocol API](api/protocol.md) |
 | Submissions and Task composition | [Task API](api/task.md) |
+| Evaluator preparation and derived caches | [Derived artifact cache](api/cache.md) |
 | Candidate scoring and ranking | [Candidate submission metrics](metrics/candidate-submission-metrics.md) |
 
 The [API overview](api/README.md) provides a shorter entry point to the four

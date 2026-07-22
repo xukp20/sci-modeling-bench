@@ -82,12 +82,19 @@ SciModelingBench provides:
 - revision-pinned loading of scientific datasets hosted on Hugging Face;
 - semantic manifests, schemas, provenance metadata, and structured validation;
 - trusted Objectives for persisted-target lookup or derived evaluation;
+- integrity-checked local caching for deterministic derived evaluator artifacts;
 - Protocols that construct the information exposed to an optimization agent;
 - Tasks that bind Agent input to typed submission and metric semantics;
 - optional, lazily loaded domain-knowledge resources.
 
 The package does not define a universal submission format, query budgets,
 agent workflows, process isolation, or an evaluation harness.
+
+Hub-backed Tasks enable derived artifact caching by default. Set
+`SCI_MODELING_BENCH_CACHE_DIR` to choose a shared local root, call
+`task.prepare()` before serving evaluations, or pass `cache=False` when no
+persistent derived state is desired. Package upgrades reuse entries whenever
+the pinned Dataset revision and derivation version are unchanged.
 
 ## Quick Start: TFBind8
 

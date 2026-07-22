@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-07-22
+
+### Added
+
+- Public, integrity-checked derived artifact caching with deterministic
+  identities, atomic writes, concurrent-worker locking, configurable cache
+  roots, and observable `Task.prepare()` reports.
+- Persistent evaluator preparation for the TFBind10 Pho4 posterior-affinity
+  landscape and the shared DrugMatrix measured-condition pool.
+
+### Changed
+
+- TFBind10 Pho4 count aggregation now reads Arrow columns through vectorized
+  NumPy buffers instead of materializing millions of Python strings.
+- Full commit-SHA Dataset revisions bypass mutable-reference metadata
+  resolution; mutable revisions use a bounded Hub metadata timeout.
+
 ## [0.8.0] - 2026-07-21
 
 ### Changed

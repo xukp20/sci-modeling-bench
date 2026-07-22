@@ -32,6 +32,8 @@ Dataset.from_hub(
     *,
     token: str | None = None,
     validator: DatasetValidator | None = None,
+    cache: bool = True,
+    cache_dir: str | Path | None = None,
 ) -> Dataset
 ```
 
@@ -62,6 +64,10 @@ Dataset-specific classes may provide a default source. For example,
 `TFBind8Dataset.from_hub()` fills in the Design-Bench repository and config
 while still accepting a mirror or pinned revision.
 
+`cache` controls deterministic evaluator-side derived artifacts, independently
+of the Hugging Face download cache. `cache_dir` overrides their location. See
+the [derived artifact cache](cache.md) for identity and lifecycle details.
+
 ## Dataset Properties
 
 | Property | Type | Meaning |
@@ -75,6 +81,7 @@ while still accepting a mirror or pinned revision.
 | `splits` | `tuple[DatasetSplit, ...]` | Immutable split metadata |
 | `available_splits` | `tuple[str, ...]` | Declared split names in manifest order |
 | `knowledge` | `Knowledge` | Read-only mapping of lazy text resources |
+| `artifact_cache` | `ArtifactCache` | Trusted cache for deterministic derived evaluator artifacts |
 | `features` | Hugging Face `Features` | Physical features for the loaded default split |
 
 Metadata, schema, field, split, constraint, violation, and validation-report

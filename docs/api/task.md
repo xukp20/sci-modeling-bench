@@ -25,6 +25,7 @@ class Task(ABC, Generic[AgentInputT, SubmissionT, EvaluationT]):
     dataset: Dataset
     protocol: Protocol[AgentInputT]
 
+    def prepare(self) -> tuple[PreparationReport, ...]: ...
     def build_input(self) -> AgentInputBundle[AgentInputT]: ...
     def evaluate(self, submission: SubmissionT) -> EvaluationT: ...
 ```
@@ -34,6 +35,13 @@ class Task(ABC, Generic[AgentInputT, SubmissionT, EvaluationT]):
 uniform machine-readable description from `bundle.manifest`. Submission and
 metric semantics remain Task documentation rather than being inferred from the
 input tables.
+
+`prepare()` materializes trusted evaluator resources without evaluating a
+submission. A harness may call it during setup to move deterministic work out
+of the first query. Objective-backed Tasks delegate to their Objective; Tasks
+without persistent derived resources return an empty tuple. See the
+[derived artifact cache](cache.md) for reports, cache locations, and integrity
+rules.
 
 ## Submission Evaluation
 

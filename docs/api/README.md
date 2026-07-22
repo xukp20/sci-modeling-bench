@@ -1,6 +1,6 @@
 # API Documentation
 
-The framework exposes four experimental interfaces:
+The framework exposes four core experimental interfaces:
 
 - [Dataset API](dataset.md): revision-pinned observations, manifests, semantic
   schemas, validation, splits, and knowledge resources.
@@ -8,6 +8,9 @@ The framework exposes four experimental interfaces:
 - [Protocol API](protocol.md): construction of agent-visible benchmark input.
 - [Task API](task.md): submission contracts, metrics, and composition of
   Dataset, Protocol, and optional Objective resources.
+
+The [derived artifact cache](cache.md) documents evaluator-side preparation,
+cache identity, integrity checks, and multi-worker reuse.
 
 For how these interfaces fit together, read
 [Architecture and core concepts](../architecture/core-concepts.md). The

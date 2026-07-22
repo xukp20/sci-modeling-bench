@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -15,7 +16,8 @@ from sci_modeling_bench.dataset import (
 )
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4._sequence import (
     SEQUENCE_COUNT,
-    sequence_indices,
+    dataset_numpy_column,
+    dataset_sequence_indices,
 )
 
 DEFAULT_TFBIND10_PHO4_REPO_ID = "sci-modeling-bench/design-bench"
@@ -59,6 +61,8 @@ class TFBind10Pho4Dataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> TFBind10Pho4Dataset:
         return super().from_hub(
             repo_id,
@@ -66,6 +70,8 @@ class TFBind10Pho4Dataset(Dataset):
             revision=revision,
             token=token,
             validator=validator or TFBind10Pho4Validator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     @classmethod
@@ -75,11 +81,15 @@ class TFBind10Pho4Dataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> TFBind10Pho4Dataset:
         return super().from_source(
             source,
             token=token,
             validator=validator or TFBind10Pho4Validator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     def validate_dataset(self, data: Any | None = None) -> ValidationReport:
@@ -105,14 +115,17 @@ class TFBind10Pho4Validator(DatasetValidator):
             )
         try:
             row_count = len(data)
-            sequences = list(data["sequence"])
-            sequence_ids = sequence_indices(sequences)
-            raw_replicate_ids = np.asarray(data["replicate_id"])
-            raw_bound_counts = np.asarray(data["bound_count"])
-            raw_input_counts = np.asarray(data["input_count"])
-            bound_fractions = np.asarray(data["bound_fraction"], dtype=np.float64)
-            input_fractions = np.asarray(data["input_fraction"], dtype=np.float64)
-            observed_ddg = np.asarray(data["observed_ddg"], dtype=np.float64)
+            sequence_ids = dataset_sequence_indices(data)
+            raw_replicate_ids = dataset_numpy_column(data, "replicate_id")
+            raw_bound_counts = dataset_numpy_column(data, "bound_count")
+            raw_input_counts = dataset_numpy_column(data, "input_count")
+            bound_fractions = dataset_numpy_column(
+                data, "bound_fraction", np.float64
+            )
+            input_fractions = dataset_numpy_column(
+                data, "input_fraction", np.float64
+            )
+            observed_ddg = dataset_numpy_column(data, "observed_ddg", np.float64)
         except Exception as exc:
             return ValidationReport(
                 violations=(

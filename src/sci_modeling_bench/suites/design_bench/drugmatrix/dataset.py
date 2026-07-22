@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from collections import Counter
 from numbers import Real
+from pathlib import Path
 from typing import Any
 
 from sci_modeling_bench.dataset import (
@@ -79,6 +80,8 @@ class DrugMatrixDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> DrugMatrixDataset:
         return super().from_hub(
             repo_id,
@@ -86,6 +89,8 @@ class DrugMatrixDataset(Dataset):
             revision=revision,
             token=token,
             validator=validator or DrugMatrixValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     @classmethod
@@ -95,11 +100,15 @@ class DrugMatrixDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> DrugMatrixDataset:
         return super().from_source(
             source,
             token=token,
             validator=validator or DrugMatrixValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import struct
 from numbers import Real
+from pathlib import Path
 from typing import Any
 
 from sci_modeling_bench.dataset.dataset import Dataset
@@ -41,6 +42,8 @@ class TFBind8Dataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> TFBind8Dataset:
         return super().from_hub(
             repo_id,
@@ -48,6 +51,8 @@ class TFBind8Dataset(Dataset):
             revision=revision,
             token=token,
             validator=validator or TFBind8Validator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     @classmethod
@@ -57,11 +62,15 @@ class TFBind8Dataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> TFBind8Dataset:
         return super().from_source(
             source,
             token=token,
             validator=validator or TFBind8Validator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
 

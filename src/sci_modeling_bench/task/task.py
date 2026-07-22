@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
 from sci_modeling_bench.dataset import Dataset
+from sci_modeling_bench.cache import PreparationReport
 from sci_modeling_bench.exceptions import TaskError
 from sci_modeling_bench.objective import Objective
 from sci_modeling_bench.protocol import AgentInputBundle, Protocol
@@ -44,6 +45,11 @@ class Task(ABC, Generic[AgentInputT, SubmissionT, EvaluationT]):
             manifest=bundle.manifest.for_task(self.task_id),
         )
 
+    def prepare(self) -> tuple[PreparationReport, ...]:
+        """Prepare trusted evaluator artifacts without evaluating a submission."""
+
+        return ()
+
     @abstractmethod
     def evaluate(self, submission: SubmissionT) -> EvaluationT:
         """Evaluate one complete submission using trusted Task state."""
@@ -66,3 +72,6 @@ class ObjectiveBackedTask(Task[AgentInputT, SubmissionT, EvaluationT], ABC):
     @property
     def objective(self) -> Objective:
         return self._objective
+
+    def prepare(self) -> tuple[PreparationReport, ...]:
+        return self.objective.prepare()

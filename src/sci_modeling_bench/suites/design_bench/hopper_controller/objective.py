@@ -80,3 +80,7 @@ class HopperControllerMeasuredObjective(Objective):
             raise ObjectiveError("Hopper policy identities must be unique")
         self._lookup = lookup
         return lookup
+
+    def prepare(self) -> tuple[()]:
+        _ = self._get_lookup()
+        return ()

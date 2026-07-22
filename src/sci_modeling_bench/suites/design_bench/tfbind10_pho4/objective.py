@@ -3,17 +3,22 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 from datasets import Dataset as HFDataset
 from datasets import Features, Value
 
+from sci_modeling_bench.cache import PreparationReport, artifact_identity
 from sci_modeling_bench.exceptions import ObjectiveError, ObjectiveLookupError
 from sci_modeling_bench.objective import Candidate, Objective, ObjectiveOutput
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4._sequence import (
     SEQUENCE_COUNT,
     all_sequences,
+    dataset_numpy_column,
+    dataset_sequence_indices,
     sequence_indices,
 )
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4.dataset import (
@@ -29,6 +34,8 @@ _REQUIRED_COLUMNS = {
     "bound_count",
     "input_count",
 }
+_ARTIFACT_ID = "tfbind10-pho4-posterior-affinity"
+_ARTIFACT_PRODUCER_VERSION = 1
 
 
 @dataclass(frozen=True)
@@ -79,6 +86,7 @@ class TFBind10Pho4PosteriorObjective(Objective):
         self._split = split
         self._landscape: Pho4AffinityLandscape | None = None
         self._score_table: HFDataset | None = None
+        self._preparation_report: PreparationReport | None = None
         super().__init__(dataset)
 
     @property
@@ -99,8 +107,28 @@ class TFBind10Pho4PosteriorObjective(Objective):
     @property
     def landscape(self) -> Pho4AffinityLandscape:
         if self._landscape is None:
-            self._landscape = build_affinity_landscape(self.dataset.load(self.split))
+            identity = artifact_identity(
+                self.dataset,
+                artifact_id=_ARTIFACT_ID,
+                producer_version=_ARTIFACT_PRODUCER_VERSION,
+                split=self.split,
+                parameters={"pseudocount": self.pseudocount},
+            )
+            prepared = self.dataset.artifact_cache.get_or_build(
+                identity,
+                load=_load_affinity_landscape,
+                build=lambda: build_affinity_landscape(
+                    self.dataset.load(self.split)
+                ),
+                write=_write_affinity_landscape,
+            )
+            self._landscape = prepared.value
+            self._preparation_report = prepared.report
         return self._landscape
+
+    def prepare(self) -> tuple[PreparationReport, ...]:
+        _ = self.landscape
+        return () if self._preparation_report is None else (self._preparation_report,)
 
     def score_table(self) -> HFDataset:
         """Return the trusted complete score table in canonical sequence order."""
@@ -132,11 +160,10 @@ def build_affinity_landscape(observations: HFDataset) -> Pho4AffinityLandscape:
     missing = sorted(_REQUIRED_COLUMNS - set(observations.column_names))
     if missing:
         raise ObjectiveError(f"Pho4 observation split is missing columns: {missing}")
-    sequences = list(observations["sequence"])
-    sequence_ids = sequence_indices(sequences)
-    replicate_ids = np.asarray(observations["replicate_id"], dtype=np.int8)
-    bound_counts = np.asarray(observations["bound_count"], dtype=np.int64)
-    input_counts = np.asarray(observations["input_count"], dtype=np.int64)
+    sequence_ids = dataset_sequence_indices(observations)
+    replicate_ids = dataset_numpy_column(observations, "replicate_id", np.int8)
+    bound_counts = dataset_numpy_column(observations, "bound_count", np.int64)
+    input_counts = dataset_numpy_column(observations, "input_count", np.int64)
     if not (
         len(sequence_ids)
         == len(replicate_ids)
@@ -188,6 +215,58 @@ def build_affinity_landscape(observations: HFDataset) -> Pho4AffinityLandscape:
         row_sequence_indices=row_sequence_indices,
         bound_depth=bound_depth,
         input_depth=input_depth,
+    )
+
+
+def _write_affinity_landscape(
+    directory: Path, landscape: Pho4AffinityLandscape
+) -> None:
+    np.save(directory / "scores.npy", landscape.scores, allow_pickle=False)
+    np.save(directory / "observed.npy", landscape.observed, allow_pickle=False)
+    np.save(
+        directory / "row_sequence_indices.npy",
+        landscape.row_sequence_indices,
+        allow_pickle=False,
+    )
+    (directory / "landscape.json").write_text(
+        json.dumps(
+            {
+                "bound_depth": landscape.bound_depth,
+                "input_depth": landscape.input_depth,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _load_affinity_landscape(directory: Path) -> Pho4AffinityLandscape:
+    scores = np.load(directory / "scores.npy", allow_pickle=False, mmap_mode="r")
+    observed = np.load(
+        directory / "observed.npy", allow_pickle=False, mmap_mode="r"
+    )
+    row_indices = np.load(
+        directory / "row_sequence_indices.npy",
+        allow_pickle=False,
+        mmap_mode="r",
+    )
+    metadata = json.loads((directory / "landscape.json").read_text(encoding="utf-8"))
+    if scores.shape != (SEQUENCE_COUNT,) or scores.dtype != np.float64:
+        raise ValueError("cached Pho4 scores have an invalid shape or dtype")
+    if observed.shape != (SEQUENCE_COUNT,) or observed.dtype != np.bool_:
+        raise ValueError("cached Pho4 observed mask has an invalid shape or dtype")
+    if row_indices.ndim != 1 or row_indices.dtype != np.int32:
+        raise ValueError("cached Pho4 row indices have an invalid shape or dtype")
+    if not np.all(np.isfinite(scores[observed])):
+        raise ValueError("cached Pho4 observed scores must be finite")
+    return Pho4AffinityLandscape(
+        scores=scores,
+        observed=observed,
+        row_sequence_indices=row_indices,
+        bound_depth=int(metadata["bound_depth"]),
+        input_depth=int(metadata["input_depth"]),
     )
 
 

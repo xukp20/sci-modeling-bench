@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from collections.abc import Mapping, Sequence
 from numbers import Integral, Real
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -67,6 +68,8 @@ class HopperControllerDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> HopperControllerDataset:
         return super().from_hub(
             repo_id,
@@ -74,6 +77,8 @@ class HopperControllerDataset(Dataset):
             revision=revision,
             token=token,
             validator=validator or HopperControllerValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     @classmethod
@@ -83,11 +88,15 @@ class HopperControllerDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> HopperControllerDataset:
         return super().from_source(
             source,
             token=token,
             validator=validator or HopperControllerValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
 

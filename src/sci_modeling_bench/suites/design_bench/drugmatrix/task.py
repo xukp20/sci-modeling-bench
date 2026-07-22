@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable
+from pathlib import Path
 
 from sci_modeling_bench.exceptions import TaskError
 from sci_modeling_bench.objective import Candidate
@@ -51,6 +52,7 @@ class DrugMatrixCandidatePoolRankingTask(
         )
         if selected_objective.endpoint != endpoint:
             raise TaskError("objective endpoint must match the Task endpoint")
+        selected_objective.prepare()
         candidate_pool = selected_protocol.candidate_pool(
             dataset, split=selected_objective.split
         )
@@ -119,6 +121,8 @@ class DrugMatrixCandidatePoolRankingTask(
         config_name: str | None = DRUGMATRIX_CONFIG_NAME,
         revision: str | None = DEFAULT_DRUGMATRIX_REVISION,
         token: str | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
         submission_size: int = 16,
         summary_size: int | None = None,
         primary_metric: str | None = None,
@@ -128,6 +132,8 @@ class DrugMatrixCandidatePoolRankingTask(
             config_name=config_name,
             revision=revision,
             token=token,
+            cache=cache,
+            cache_dir=cache_dir,
         )
         return cls(
             dataset,

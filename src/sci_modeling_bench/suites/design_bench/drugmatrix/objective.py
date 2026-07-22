@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from sci_modeling_bench.cache import PreparationReport
 from sci_modeling_bench.exceptions import ObjectiveError, ObjectiveLookupError
 from sci_modeling_bench.objective import Candidate, Objective, ObjectiveOutput
 from sci_modeling_bench.suites.design_bench.drugmatrix._conditions import (
     ENDPOINTS,
-    build_measured_pool,
+    prepare_measured_pool,
 )
 from sci_modeling_bench.suites.design_bench.drugmatrix.dataset import (
     DRUGMATRIX_DEFAULT_SPLIT,
@@ -41,6 +42,7 @@ class DrugMatrixEndpointObjective(Objective):
         self._endpoint = endpoint
         self._split = split
         self._lookup: dict[str, tuple[str, float, float]] | None = None
+        self._preparation_report: PreparationReport | None = None
         super().__init__(dataset)
 
     @property
@@ -81,7 +83,9 @@ class DrugMatrixEndpointObjective(Objective):
     def _get_lookup(self) -> dict[str, tuple[str, float, float]]:
         if self._lookup is not None:
             return self._lookup
-        table = build_measured_pool(self.dataset.load(self.split)).table
+        prepared = prepare_measured_pool(self.dataset, split=self.split)
+        table = prepared.value.table
+        self._preparation_report = prepared.report
         raw_field = f"{self.endpoint}_raw_response"
         deviation_field = f"{self.endpoint}_control_deviation"
         lookup = {
@@ -98,3 +102,7 @@ class DrugMatrixEndpointObjective(Objective):
             raise ObjectiveError("DrugMatrix measured-pool condition IDs must be unique")
         self._lookup = lookup
         return lookup
+
+    def prepare(self) -> tuple[PreparationReport, ...]:
+        _ = self._get_lookup()
+        return () if self._preparation_report is None else (self._preparation_report,)

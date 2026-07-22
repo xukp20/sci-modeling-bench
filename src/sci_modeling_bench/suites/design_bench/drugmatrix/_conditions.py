@@ -6,11 +6,14 @@ import hashlib
 import json
 import math
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
+import numpy as np
 from datasets import Dataset as HFDataset
 from datasets import Features, Value
 
+from sci_modeling_bench.cache import PreparedArtifact, artifact_identity
 from sci_modeling_bench.exceptions import ProtocolError
 
 ENDPOINTS = (
@@ -46,6 +49,8 @@ _CANDIDATE_COLUMNS = (
     "route",
     "study_id",
 )
+_ARTIFACT_ID = "drugmatrix-measured-pool"
+_ARTIFACT_PRODUCER_VERSION = 1
 
 
 @dataclass(frozen=True)
@@ -139,6 +144,75 @@ def build_measured_pool(observations: HFDataset) -> MeasuredPool:
     return MeasuredPool(
         table=HFDataset.from_list(rows, features=_pool_features()),
         treatment_row_indices=frozenset(withheld),
+    )
+
+
+def prepare_measured_pool(
+    dataset: Any,
+    *,
+    split: str,
+    observations: HFDataset | None = None,
+) -> PreparedArtifact[MeasuredPool]:
+    """Load or build the shared measured-condition pool for all endpoints."""
+
+    identity = artifact_identity(
+        dataset,
+        artifact_id=_ARTIFACT_ID,
+        producer_version=_ARTIFACT_PRODUCER_VERSION,
+        split=split,
+    )
+    return dataset.artifact_cache.get_or_build(
+        identity,
+        load=lambda directory: _load_measured_pool(
+            directory,
+            expected_rows=dataset.split(split).num_rows,
+        ),
+        build=lambda: build_measured_pool(
+            dataset.load(split) if observations is None else observations
+        ),
+        write=_write_measured_pool,
+    )
+
+
+def _write_measured_pool(directory: Path, pool: MeasuredPool) -> None:
+    pool.table.to_parquet(str(directory / "measured_pool.parquet"))
+    np.save(
+        directory / "treatment_row_indices.npy",
+        np.asarray(sorted(pool.treatment_row_indices), dtype=np.int64),
+        allow_pickle=False,
+    )
+
+
+def _load_measured_pool(
+    directory: Path, *, expected_rows: int | None
+) -> MeasuredPool:
+    table = HFDataset.from_parquet(str(directory / "measured_pool.parquet"))
+    indices = np.load(
+        directory / "treatment_row_indices.npy",
+        allow_pickle=False,
+        mmap_mode="r",
+    )
+    if indices.ndim != 1 or indices.dtype != np.int64:
+        raise ValueError("cached DrugMatrix treatment indices are invalid")
+    if len(indices) and (int(indices[0]) < 0 or np.any(indices[1:] <= indices[:-1])):
+        raise ValueError("cached DrugMatrix treatment indices must be sorted and unique")
+    if expected_rows is not None and len(indices) and int(indices[-1]) >= expected_rows:
+        raise ValueError("cached DrugMatrix treatment index is outside the split")
+    required = {"condition_id", "canonical_smiles"}
+    required.update(
+        f"{endpoint}_{suffix}"
+        for endpoint in ENDPOINTS
+        for suffix in ("raw_response", "control_deviation")
+    )
+    missing = sorted(required - set(table.column_names))
+    if missing:
+        raise ValueError(f"cached DrugMatrix measured pool is missing {missing}")
+    identities = list(table["condition_id"])
+    if not identities or len(set(identities)) != len(identities):
+        raise ValueError("cached DrugMatrix condition IDs must be non-empty and unique")
+    return MeasuredPool(
+        table=table,
+        treatment_row_indices=frozenset(int(index) for index in indices),
     )
 
 

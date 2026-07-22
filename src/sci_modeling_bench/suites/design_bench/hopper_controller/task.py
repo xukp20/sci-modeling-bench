@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable
+from pathlib import Path
 
 from sci_modeling_bench.objective import Candidate
 from sci_modeling_bench.task import CandidatePoolRankingTask
@@ -74,6 +75,8 @@ class HopperControllerCandidatePoolRankingTask(
         revision: str | None = DEFAULT_HOPPER_CONTROLLER_REVISION,
         *,
         token: str | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
         submission_size: int = 32,
         summary_size: int | None = None,
         primary_metric: str | None = None,
@@ -83,6 +86,8 @@ class HopperControllerCandidatePoolRankingTask(
             config_name=config_name,
             revision=revision,
             token=token,
+            cache=cache,
+            cache_dir=cache_dir,
         )
         return cls(
             dataset,

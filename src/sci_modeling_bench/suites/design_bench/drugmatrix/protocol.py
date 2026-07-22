@@ -19,8 +19,8 @@ from sci_modeling_bench.protocol import (
 )
 from sci_modeling_bench.suites.design_bench.drugmatrix._conditions import (
     MeasuredPool,
-    build_measured_pool,
     candidate_view,
+    prepare_measured_pool,
 )
 from sci_modeling_bench.suites.design_bench.drugmatrix.dataset import (
     DRUGMATRIX_DEFAULT_SPLIT,
@@ -108,8 +108,14 @@ class DrugMatrixMeasuredPoolProtocol(Protocol[DrugMatrixAgentInput]):
         """Return the internal labeled pool used to construct a Task."""
 
         selected_split = split or DRUGMATRIX_DEFAULT_SPLIT
-        observations = self._load_observations(dataset, selected_split)
-        return self._pool(dataset, selected_split, observations).table
+        self._validate_dataset(dataset)
+        key = (dataset, selected_split)
+        if key not in self._pools:
+            self._pools[key] = prepare_measured_pool(
+                dataset,
+                split=selected_split,
+            ).value
+        return self._pools[key].table
 
     def _pool(
         self,
@@ -119,19 +125,26 @@ class DrugMatrixMeasuredPoolProtocol(Protocol[DrugMatrixAgentInput]):
     ) -> MeasuredPool:
         key = (dataset, split)
         if key not in self._pools:
-            self._pools[key] = build_measured_pool(observations)
+            self._pools[key] = prepare_measured_pool(
+                dataset,
+                split=split,
+                observations=observations,
+            ).value
         return self._pools[key]
 
     def _load_observations(self, dataset: Dataset, split: str) -> HFDataset:
+        self._validate_dataset(dataset)
+        try:
+            return dataset.load(split)
+        except ValueError as exc:
+            raise ProtocolError(str(exc)) from exc
+
+    def _validate_dataset(self, dataset: Dataset) -> None:
         if dataset.metadata.dataset_id != _DATASET_ID:
             raise ProtocolError(
                 f"DrugMatrixMeasuredPoolProtocol requires dataset_id "
                 f"{_DATASET_ID!r}, got {dataset.metadata.dataset_id!r}"
             )
-        try:
-            return dataset.load(split)
-        except ValueError as exc:
-            raise ProtocolError(str(exc)) from exc
 
 
 def _observation_view_fields(data: HFDataset) -> dict[str, AgentInputField]:

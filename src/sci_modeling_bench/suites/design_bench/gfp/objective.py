@@ -77,3 +77,7 @@ class GFPMeasuredObjective(Objective):
             raise ObjectiveError("GFP protein sequences must be unique")
         self._lookup = lookup
         return lookup
+
+    def prepare(self) -> tuple[()]:
+        _ = self._get_lookup()
+        return ()

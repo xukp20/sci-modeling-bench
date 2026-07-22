@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from collections.abc import Mapping
 from numbers import Real
+from pathlib import Path
 from typing import Any
 
 from sci_modeling_bench.dataset import (
@@ -57,6 +58,8 @@ class CellDAGNASDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> CellDAGNASDataset:
         return super().from_hub(
             repo_id,
@@ -64,6 +67,8 @@ class CellDAGNASDataset(Dataset):
             revision=revision,
             token=token,
             validator=validator or CellDAGNASValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     @classmethod
@@ -73,11 +78,15 @@ class CellDAGNASDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> CellDAGNASDataset:
         return super().from_source(
             source,
             token=token,
             validator=validator or CellDAGNASValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
 

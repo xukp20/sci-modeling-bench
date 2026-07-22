@@ -1,5 +1,11 @@
 """SciModelingBench public package."""
 
+from sci_modeling_bench.cache import (
+    ArtifactCache,
+    ArtifactIdentity,
+    PreparationReport,
+)
+
 from sci_modeling_bench.dataset import (
     AllowedValuesConstraint,
     AlphabetConstraint,
@@ -61,6 +67,8 @@ __all__ = [
     "AgentInputManifest",
     "AgentInputView",
     "AgentViewRole",
+    "ArtifactCache",
+    "ArtifactIdentity",
     "AllowedValuesConstraint",
     "AlphabetConstraint",
     "BlackBoxOptimizationEvaluation",
@@ -89,6 +97,7 @@ __all__ = [
     "ObjectiveOutputError",
     "Protocol",
     "ProtocolError",
+    "PreparationReport",
     "SchemaMismatchError",
     "SciModelingBenchError",
     "SubmissionEvaluation",

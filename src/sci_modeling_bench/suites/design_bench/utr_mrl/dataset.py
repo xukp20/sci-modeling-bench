@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -47,6 +48,8 @@ class UTRMRLDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> UTRMRLDataset:
         return super().from_hub(
             repo_id,
@@ -54,6 +57,8 @@ class UTRMRLDataset(Dataset):
             revision=revision,
             token=token,
             validator=validator or UTRMRLValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     @classmethod
@@ -63,11 +68,15 @@ class UTRMRLDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> UTRMRLDataset:
         return super().from_source(
             source,
             token=token,
             validator=validator or UTRMRLValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     def validate_dataset(self, data: Any | None = None) -> ValidationReport:

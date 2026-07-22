@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sci-modeling-bench"
-version = "0.8.0"
+version = "0.9.0"
 description = "An observation-grounded benchmark framework for scientific modeling and design."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -29,6 +29,7 @@ classifiers = [
 ]
 dependencies = [
   "datasets>=3.1",
+  "filelock>=3.12",
   "huggingface-hub>=0.26",
   "numpy>=1.26",
   "pydantic>=2.10",

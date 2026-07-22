@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
+from sci_modeling_bench.cache import ArtifactCache
 from sci_modeling_bench.dataset._hub import DatasetRepository, HubDatasetRepository
 from sci_modeling_bench.dataset.knowledge import Knowledge, KnowledgeResource
 from sci_modeling_bench.dataset.manifest import (
@@ -36,11 +38,13 @@ class Dataset:
         *,
         config_name: str,
         validator: DatasetValidator | None = None,
+        artifact_cache: ArtifactCache | None = None,
     ) -> None:
         self._manifest = manifest
         self._repository = repository
         self._config_name = config_name
         self._validator = validator or DatasetValidator()
+        self._artifact_cache = artifact_cache or ArtifactCache.disabled()
         self._loaded: dict[str, Any] = {}
         self._knowledge = Knowledge(
             {
@@ -64,6 +68,8 @@ class Dataset:
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> Dataset:
         """Load one config from a pinned Hugging Face Dataset repository."""
 
@@ -75,6 +81,8 @@ class Dataset:
             ),
             token=token,
             validator=validator,
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     @classmethod
@@ -84,6 +92,8 @@ class Dataset:
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> Dataset:
         """Load a Dataset from an explicit, reusable Hub source reference."""
 
@@ -104,6 +114,7 @@ class Dataset:
             repository,
             config_name=config_name,
             validator=validator,
+            artifact_cache=ArtifactCache(cache_dir, enabled=cache),
         )
 
     @property
@@ -117,6 +128,12 @@ class Dataset:
     @property
     def knowledge(self) -> Knowledge:
         return self._knowledge
+
+    @property
+    def artifact_cache(self) -> ArtifactCache:
+        """Trusted cache used for deterministic derived artifacts."""
+
+        return self._artifact_cache
 
     @property
     def config_name(self) -> str:

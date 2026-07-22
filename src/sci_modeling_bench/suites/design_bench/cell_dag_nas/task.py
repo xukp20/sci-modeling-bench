@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from datasets import Dataset as HFDataset
 
 from sci_modeling_bench.objective import Candidate
@@ -88,6 +90,8 @@ class CellDAGNASBlackBoxOptimizationTask(
         revision: str | None = None,
         *,
         token: str | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
         submission_size: int = 32,
         summary_size: int | None = None,
         primary_metric: str | None = None,
@@ -97,6 +101,8 @@ class CellDAGNASBlackBoxOptimizationTask(
             config_name=config_name,
             revision=revision,
             token=token,
+            cache=cache,
+            cache_dir=cache_dir,
         )
         return cls(
             dataset,

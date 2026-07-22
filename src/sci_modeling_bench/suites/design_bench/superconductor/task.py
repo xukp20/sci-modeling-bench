@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from collections.abc import Hashable, Sequence
 from numbers import Real
+from pathlib import Path
 
 from sci_modeling_bench.objective import Candidate
 from sci_modeling_bench.task import CandidatePoolRankingTask
@@ -92,6 +93,8 @@ class SuperconductorCandidatePoolRankingTask(
         revision: str | None = None,
         *,
         token: str | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
         submission_size: int = 32,
         summary_size: int | None = None,
         primary_metric: str | None = None,
@@ -101,6 +104,8 @@ class SuperconductorCandidatePoolRankingTask(
             config_name=config_name,
             revision=revision,
             token=token,
+            cache=cache,
+            cache_dir=cache_dir,
         )
         return cls(
             dataset,

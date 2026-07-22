@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import math
 from numbers import Real
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -100,6 +101,8 @@ class SuperconductorDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> SuperconductorDataset:
         return super().from_hub(
             repo_id,
@@ -107,6 +110,8 @@ class SuperconductorDataset(Dataset):
             revision=revision,
             token=token,
             validator=validator or SuperconductorValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     @classmethod
@@ -116,11 +121,15 @@ class SuperconductorDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> SuperconductorDataset:
         return super().from_source(
             source,
             token=token,
             validator=validator or SuperconductorValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
 

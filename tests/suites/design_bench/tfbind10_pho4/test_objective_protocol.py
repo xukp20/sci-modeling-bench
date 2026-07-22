@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from sci_modeling_bench.cache import ArtifactCache
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4 import (
     TFBind10Pho4LowerHalfProtocol,
     TFBind10Pho4PosteriorObjective,
@@ -27,6 +28,30 @@ def test_posterior_objective_returns_derived_affinity_in_order(
     assert "affinity_score" not in {
         field.name for field in tiny_tfbind10_pho4_dataset.schema.targets
     }
+
+
+def test_posterior_objective_reuses_derived_cache(
+    tiny_tfbind10_pho4_dataset,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    tiny_tfbind10_pho4_dataset._artifact_cache = ArtifactCache(tmp_path)
+    first = TFBind10Pho4PosteriorObjective(tiny_tfbind10_pho4_dataset)
+    first_report = first.prepare()[0]
+    expected = first.evaluate_batch([{"sequence": SEQUENCES[-1]}])
+
+    import sci_modeling_bench.suites.design_bench.tfbind10_pho4.objective as module
+
+    def fail_rebuild(_observations):
+        raise AssertionError("valid derived cache should bypass landscape construction")
+
+    monkeypatch.setattr(module, "build_affinity_landscape", fail_rebuild)
+    second = TFBind10Pho4PosteriorObjective(tiny_tfbind10_pho4_dataset)
+    second_report = second.prepare()[0]
+
+    assert not first_report.cache_hit
+    assert second_report.cache_hit
+    assert second.evaluate_batch([{"sequence": SEQUENCES[-1]}]) == expected
 
 
 def test_protocol_exposes_only_raw_lower_half_observations(

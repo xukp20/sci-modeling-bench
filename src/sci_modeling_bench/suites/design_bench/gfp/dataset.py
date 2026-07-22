@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import math
 from numbers import Integral, Real
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -75,6 +76,8 @@ class GFPDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> GFPDataset:
         return super().from_hub(
             repo_id,
@@ -82,6 +85,8 @@ class GFPDataset(Dataset):
             revision=revision,
             token=token,
             validator=validator or GFPValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     @classmethod
@@ -91,11 +96,15 @@ class GFPDataset(Dataset):
         *,
         token: str | None = None,
         validator: DatasetValidator | None = None,
+        cache: bool = True,
+        cache_dir: str | Path | None = None,
     ) -> GFPDataset:
         return super().from_source(
             source,
             token=token,
             validator=validator or GFPValidator(),
+            cache=cache,
+            cache_dir=cache_dir,
         )
 
     def validate_dataset(self, data: Any | None = None) -> ValidationReport:

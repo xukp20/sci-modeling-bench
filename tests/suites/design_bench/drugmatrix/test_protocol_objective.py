@@ -4,6 +4,7 @@ import math
 
 import pytest
 
+from sci_modeling_bench.cache import ArtifactCache
 from sci_modeling_bench.exceptions import ObjectiveError, ObjectiveLookupError
 from sci_modeling_bench.suites.design_bench.drugmatrix import (
     DRUGMATRIX_ENDPOINTS,
@@ -35,6 +36,25 @@ def test_protocol_hides_candidate_treatment_rows(tiny_drugmatrix_dataset) -> Non
         row["animal_id"].startswith("candidate-")
         for row in agent_input.observations
     )
+
+
+def test_protocol_reuses_shared_measured_pool_cache(
+    tiny_drugmatrix_dataset,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    tiny_drugmatrix_dataset._artifact_cache = ArtifactCache(tmp_path)
+    first = DrugMatrixMeasuredPoolProtocol().candidate_pool(tiny_drugmatrix_dataset)
+
+    import sci_modeling_bench.suites.design_bench.drugmatrix._conditions as module
+
+    def fail_rebuild(_observations):
+        raise AssertionError("valid derived cache should bypass pool construction")
+
+    monkeypatch.setattr(module, "build_measured_pool", fail_rebuild)
+    second = DrugMatrixMeasuredPoolProtocol().candidate_pool(tiny_drugmatrix_dataset)
+
+    assert second["condition_id"] == first["condition_id"]
 
 
 @pytest.mark.parametrize("endpoint", DRUGMATRIX_ENDPOINTS)

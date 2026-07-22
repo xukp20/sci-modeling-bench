@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable, Mapping
 from typing import Any, TypeAlias
 
+from sci_modeling_bench.cache import PreparationReport
 from sci_modeling_bench.dataset.dataset import Dataset
 from sci_modeling_bench.exceptions import (
     ObjectiveError,
@@ -46,6 +47,11 @@ class Objective(ABC):
         """Evaluate one candidate using the batch contract."""
 
         return self.evaluate_batch((candidate,))[0]
+
+    def prepare(self) -> tuple[PreparationReport, ...]:
+        """Prepare deterministic evaluator resources without scoring candidates."""
+
+        return ()
 
     def evaluate_batch(
         self,

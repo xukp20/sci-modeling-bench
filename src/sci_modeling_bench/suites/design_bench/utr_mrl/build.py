@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 from collections.abc import Iterable
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -57,6 +58,88 @@ DATASET_ID = "design-bench/utr-mrl-egfp-unmodified"
 DATASET_VERSION = "1.0.0"
 MRNABENCH_COMMIT = "74f96b8e6ae9f41cc3cccff089d826a62d5604b8"
 
+KNOWLEDGE_RESOURCES = {
+    "rna_sequence_structure_and_base_pairing": {
+        "title": "RNA Sequence, Structure, and Base Pairing",
+        "description": (
+            "RNA polarity, nucleotide alphabet, canonical and wobble pairing, "
+            "secondary structure, folding energetics, and structural ensembles."
+        ),
+        "source_path": "shared/rna-sequence-structure-and-base-pairing.md",
+        "path": "knowledge/shared/rna-sequence-structure-and-base-pairing.md",
+        "media_type": "text/markdown",
+    },
+    "eukaryotic_mrna_and_translation_initiation": {
+        "title": "Eukaryotic mRNA and Translation Initiation",
+        "description": (
+            "mRNA organization, cap-dependent initiation, pre-initiation "
+            "complex recruitment, scanning, start recognition, and exceptions."
+        ),
+        "source_path": "shared/eukaryotic-mrna-and-translation-initiation.md",
+        "path": (
+            "knowledge/shared/eukaryotic-mrna-and-translation-initiation.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "five_prime_utr_regulatory_elements": {
+        "title": "Five-Prime UTR Regulatory Elements",
+        "description": (
+            "Sequence and structural elements in eukaryotic 5' UTRs and their "
+            "context-dependent effects on translation."
+        ),
+        "source_path": "shared/five-prime-utr-regulatory-elements.md",
+        "path": "knowledge/shared/five-prime-utr-regulatory-elements.md",
+        "media_type": "text/markdown",
+    },
+    "kozak_context_and_start_codon_recognition": {
+        "title": "Kozak Context and Start-Codon Recognition",
+        "description": (
+            "Start-site coordinate conventions, vertebrate AUG context, "
+            "leaky scanning, non-AUG initiation, and organism dependence."
+        ),
+        "source_path": "shared/kozak-context-and-start-codon-recognition.md",
+        "path": "knowledge/shared/kozak-context-and-start-codon-recognition.md",
+        "media_type": "text/markdown",
+    },
+    "upstream_start_codons_and_upstream_open_reading_frames": {
+        "title": "Upstream Start Codons and Upstream Open Reading Frames",
+        "description": (
+            "uAUG and uORF definitions, reading frames, leaky scanning, "
+            "reinitiation, overlap, and conditional translational regulation."
+        ),
+        "source_path": (
+            "shared/upstream-start-codons-and-upstream-open-reading-frames.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "upstream-start-codons-and-upstream-open-reading-frames.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "polysome_profiling_and_mean_ribosome_load": {
+        "title": "Polysome Profiling and Mean Ribosome Load",
+        "description": (
+            "Polysome fractionation, sequencing-based abundance measurement, "
+            "weighted mean ribosome load, normalization, and interpretation."
+        ),
+        "source_path": "shared/polysome-profiling-and-mean-ribosome-load.md",
+        "path": "knowledge/shared/polysome-profiling-and-mean-ribosome-load.md",
+        "media_type": "text/markdown",
+    },
+    "massively_parallel_translation_reporter_assays": {
+        "title": "Massively Parallel Translation Reporter Assays",
+        "description": (
+            "Pooled reporter libraries for measuring how cis-regulatory "
+            "sequences affect translation, including controls and limitations."
+        ),
+        "source_path": "shared/massively-parallel-translation-reporter-assays.md",
+        "path": (
+            "knowledge/shared/massively-parallel-translation-reporter-assays.md"
+        ),
+        "media_type": "text/markdown",
+    },
+}
+
 
 def build_utr_mrl_release(
     source_parquet: str | Path,
@@ -80,6 +163,7 @@ def build_utr_mrl_release(
     data.to_parquet(data_path)
 
     provenance = _provenance(source, data_path, statistics)
+    provenance["knowledge"] = _write_knowledge_resources(destination)
     _write_release_metadata(destination, provenance)
     return provenance
 
@@ -394,7 +478,14 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
                 },
             }
         ],
-        "knowledge": {},
+        "knowledge": {
+            key: {
+                field: value
+                for field, value in specification.items()
+                if field != "source_path"
+            }
+            for key, specification in KNOWLEDGE_RESOURCES.items()
+        },
     }
     _write_json(collection_path, collection)
     _write_json(manifest_dir / f"{UTR_MRL_CONFIG_NAME}.json", manifest)
@@ -457,6 +548,27 @@ config manifest records `license: unknown`.
         else:
             card.text = card.text.rstrip() + "\n" + section
     card.save(path)
+
+
+def _write_knowledge_resources(destination: Path) -> list[dict[str, Any]]:
+    source_root = resources.files("sci_modeling_bench").joinpath(
+        "resources", "knowledge"
+    )
+    artifacts: list[dict[str, Any]] = []
+    for key, specification in KNOWLEDGE_RESOURCES.items():
+        content = source_root.joinpath(specification["source_path"]).read_bytes()
+        output_path = destination / specification["path"]
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(content)
+        artifacts.append(
+            {
+                "key": key,
+                "path": specification["path"],
+                "size_bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
+    return artifacts
 
 
 def _verify_source(path: Path) -> None:

@@ -323,6 +323,27 @@ default to 32 lowers that random mean to `0.7533`, while `K=5` still requires
 several strong sequences rather than one extreme. `batch_mean`, enrichment,
 and NDCG remain secondary diagnostics.
 
+### Data-only reference baselines
+
+A frozen SciModelingBench 0.7.0 reference run used only the sequence and target
+returned by `task.build_input()`. Each of the eight character positions was
+one-hot encoded independently; no motif, k-mer, reverse-complement, or external
+sequence features were added. The simple model is fixed Ridge alpha 1. A
+three-fold visible-data CV selected one fixed histogram gradient boosting model
+from Ridge alpha `0.1`, `1`, `10`, and that tree candidate. The complete
+`4^8` domain was enumerated mechanically for prediction, without reading hidden
+scores.
+
+| Method | `best_k_mean` | `batch_mean` | `global_ndcg` | `normalized_enrichment` |
+|---|---:|---:|---:|---:|
+| Random audit mean | 0.753300 | 0.463800 | 0.466700 | 0.000100 |
+| Fixed Ridge alpha 1 | 0.882843 | 0.756096 | 0.788618 | 0.553511 |
+| CV-selected histogram gradient boosting | **0.945110** | **0.854033** | **0.867347** | **0.738951** |
+
+These are Task baselines rather than an optimization leaderboard. The
+CV-selected model was frozen from visible folds before its one official
+evaluation; evaluator scores were not used to re-select a model.
+
 The release intentionally exposes strings, not a maintainer-selected feature
 matrix. Reasonable declared method choices include position-aware one-hot or
 k-mer features, motif and interaction terms, and local mutation searches.

@@ -221,6 +221,26 @@ the current `N=32` contract:
 | Structural graph heuristic | `0.93630` | `0.93624` | `0.92308` | `0.608` |
 | Low-40%-only HistGradientBoosting surrogate | `0.93747` | `0.93423` | `0.92620` | `0.680` |
 
+### Current data-only reference baselines
+
+For the current `N=32`, `K=5` contract, the SciModelingBench 0.7.0 reference
+run used only public token positions as categorical one-hot features and the
+mean of the three visible repeats as its target. Candidate generation applied
+generic token mutations to visible encodings, retained only outputs accepted
+by the public decoder, and deduplicated by public canonical identity. It did
+not use graph paths, motifs, hidden hashes, or hidden labels.
+
+| Method | `best_k_mean` | `batch_mean` | `global_ndcg` |
+|---|---:|---:|---:|
+| Random audit mean | 0.928730 | - | 0.947100 |
+| Fixed Ridge alpha 1 | **0.934322** | 0.924569 | **0.980915** |
+| CV-selected histogram gradient boosting | 0.933954 | **0.925418** | 0.979659 |
+
+Three-fold group CV kept aliases of the same canonical graph in one fold and
+selected the tree from the frozen limited model set. Its slightly lower
+official primary score is retained rather than using the evaluator to switch
+back to Ridge.
+
 The hidden-60% row samples directly from the target-derived split complement;
 it is a leakage diagnostic, not an Agent-available baseline. These are metric
 audits, not a claimed NAS leaderboard. Suitable declared

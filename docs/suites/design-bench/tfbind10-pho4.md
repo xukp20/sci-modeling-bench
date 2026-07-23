@@ -229,6 +229,30 @@ random audit of the current `N=128`, `K=16` contract with seed `20260720` gave
 `normalized_enrichment=0.00001` (`-0.01554--0.01571`). The batch primary,
 reference domain, Objective, and Dataset revision are unchanged.
 
+### Data-only reference baselines
+
+A separate SciModelingBench 0.7.0 reference run intentionally used a stricter,
+domain-agnostic representation than the mono- and dinucleotide audit above.
+It read only raw rows returned by `task.build_input()`, replaced signed infinite
+`observed_ddg` values with the finite extrema of that visible column, averaged
+repeated rows by sequence identity, aligned the sign with the maximize Task,
+and one-hot encoded the ten character positions. It did not reconstruct the
+count posterior or add k-mers or motifs.
+
+| Method | `normalized_enrichment` | `batch_mean` | `global_ndcg` |
+|---|---:|---:|---:|
+| Full-domain random mean | 0.000010 | 0.025360 | - |
+| Split-aware random unseen | **0.106000** | **0.193400** | - |
+| Fixed Ridge alpha 1 | 0.040159 | 0.088947 | **0.427494** |
+| CV-selected histogram gradient boosting | 0.033797 | 0.078854 | 0.425608 |
+
+Three-fold visible-identity CV selected the tree from the same limited model
+set used by the other data-only references, even though Ridge later obtained a
+slightly higher official score. The selection is retained because using the
+official evaluator to switch models would leak evaluation information. Both
+models exceed full-domain random enrichment but remain below the stronger
+split-aware random-unseen baseline.
+
 Useful method families include count-aware posterior or uncertainty estimates,
 position and k-mer sequence features, motif and interaction models, and
 generative or enumerative search over the known 10-mer domain. Methods should not

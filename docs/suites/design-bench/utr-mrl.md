@@ -224,6 +224,25 @@ as more reliable than batch quality. The current random audit gives
 `normalized_enrichment=-0.00057` on average with a
 `-0.05138--0.05108` 10th--90th percentile range.
 
+### Frozen data-only reference
+
+A SciModelingBench 0.7.0 rerun fixed the representation to independent
+position-wise character one-hot only. It excluded uAUG count, GC, Kozak,
+k-mers, motif, and other sequence-derived features. The limited three-fold CV
+compared Ridge alpha `0.1`, `1`, `10`, and one fixed histogram gradient
+boosting model using visible-label Spearman.
+
+| Method | `normalized_enrichment` | `global_ndcg` | `batch_mean` |
+|---|---:|---:|---:|
+| Random audit mean | -0.000570 | 0.591000 | - |
+| Fixed Ridge alpha 1 | 0.403908 | 0.740402 | 6.172016 |
+| CV-selected histogram gradient boosting | **0.412521** | **0.750275** | **6.197240** |
+
+The fixed Ridge result reproduces the position-wise one-hot signal in the
+broader audit above. The much stronger k-mer/domain rows remain useful
+domain-aware baselines, but are intentionally outside this minimal data-only
+reference.
+
 ## Trust Boundary
 
 Replicate averaging is more stable than the single-replicate Design-Bench

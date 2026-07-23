@@ -248,6 +248,27 @@ because random batches can still approach the `143 K` pool maximum. The referenc
 2,985-group measured candidate pool, so all regret and ranking claims are
 pool-relative rather than claims about the open-ended materials space.
 
+### Data-only reference baselines
+
+The SciModelingBench 0.7.0 reference uses only the 86 raw composition
+fractions disclosed by the default Protocol. It does not opt into the UCI
+descriptor view, parse formulae, or add elemental, periodic-table, Magpie, or
+material-family features. Duplicate visible compositions are averaged by
+public composition identity.
+
+| Method | `global_ndcg` | `batch_mean` | `best_k_mean` |
+|---|---:|---:|---:|
+| Random audit mean | 0.280000 | 90.480 K | 114.730 K |
+| Fixed standardized Ridge alpha 1 | **0.453389** | **100.183 K** | **115.740 K** |
+| CV-selected histogram gradient boosting | 0.239340 | 87.423 K | 91.680 K |
+
+Ordinary three-fold CV on the visible lower-temperature compositions selected
+the fixed tree model with mean held-out Spearman `0.902532`, but that model
+transferred below random on the upper candidate pool. The result exposes a
+strong distribution-shift failure: visible random-fold accuracy alone is not a
+reliable selection criterion for this Task. The official evaluator was not
+used to replace the selected tree with Ridge.
+
 ## Data Analysis and Modeling Notes
 
 The Dataset deliberately preserves modeling work rather than applying it

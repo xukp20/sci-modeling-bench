@@ -242,6 +242,25 @@ simple raw-vector model. The two privileged trajectory rows use true PPO run
 and checkpoint coordinates that the Protocol withholds. They are leakage
 diagnostics, not Agent-available baselines.
 
+### Data-only reference baselines
+
+The SciModelingBench 0.7.0 reference flattens the disclosed 5,126 policy
+weights in storage order and uses the mean of visible raw rollout returns as
+the target. It does not construct layer statistics, recover trajectory or
+checkpoint identity, run PCA, or call the simulator. The simple line is a
+standardized Ridge alpha 1; three-fold visible-data CV selected Ridge alpha 10
+from the frozen limited model set.
+
+| Method | `global_ndcg` | `batch_mean` | `best_k_mean` |
+|---|---:|---:|---:|
+| Random audit | 0.169750 | 484.240 (median) | - |
+| Fixed standardized Ridge alpha 1 | 0.329158 | 517.441 | 543.888 |
+| CV-selected Ridge alpha 10 | **0.358361** | **531.219** | **575.274** |
+
+The historical raw-weight Ridge mean@32 of `528.29` used a different audit
+pipeline and remains an auxiliary diagnostic. The frozen table above reports
+the current Task's complete official evaluation contract.
+
 ## Modeling Considerations
 
 The original weights contain strong smooth checkpoint structure consistent

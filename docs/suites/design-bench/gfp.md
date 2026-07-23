@@ -200,6 +200,24 @@ valid because `N=128` is unchanged. A random 80/20 split was rejected because th
 baseline reached about 0.937 global NDCG, making it a weak test of scientific
 modeling.
 
+### Frozen data-only reference
+
+The SciModelingBench 0.7.0 reference uses only the 237 protein characters,
+one-hot encoded independently by position. It excludes mutation annotations,
+nucleotide and barcode views, motifs, structural or physicochemical features,
+and pretrained embeddings. Three-fold visible-data CV compared a fixed small
+set and selected Ridge alpha 10.
+
+| Method | `normalized_enrichment` | `global_ndcg` | `batch_mean` |
+|---|---:|---:|---:|
+| Random audit mean | 0.000050 | 0.228000 | - |
+| Fixed Ridge alpha 1 | 0.173628 | 0.369880 | 3.780350 |
+| CV-selected Ridge alpha 10 | **0.210912** | **0.400766** | **3.790370** |
+
+The broader difficulty audit above includes other fixed configurations and is
+retained as supporting evidence. This table is the frozen, uniformly specified
+reference used for comparisons with future methods.
+
 ## Measurement and Trust Boundaries
 
 - The landscape is local to avGFP and does not cover arbitrary proteins.

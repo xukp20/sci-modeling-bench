@@ -12,6 +12,7 @@ import zipfile
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -59,6 +60,101 @@ DESIGN_BENCH_PROCESSOR = (
 DATASET_REPO_ID = "sci-modeling-bench/design-bench"
 DATASET_VERSION = "1.0.0"
 
+KNOWLEDGE_RESOURCES = {
+    "chemical_composition_stoichiometry_and_formulas": {
+        "title": "Chemical Composition, Stoichiometry, and Formulas",
+        "description": (
+            "Chemical formulas, stoichiometric ratios, normalized elemental "
+            "fractions, nonstoichiometry, and composition limitations."
+        ),
+        "source_path": (
+            "shared/chemical-composition-stoichiometry-and-formulas.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "chemical-composition-stoichiometry-and-formulas.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "elemental_properties_and_periodic_trends": {
+        "title": "Elemental Properties and Periodic Trends",
+        "description": (
+            "Definitions, conventions, and broad trends for elemental "
+            "properties used to describe multielement materials."
+        ),
+        "source_path": "shared/elemental-properties-and-periodic-trends.md",
+        "path": "knowledge/shared/elemental-properties-and-periodic-trends.md",
+        "media_type": "text/markdown",
+    },
+    "composition_derived_material_descriptors": {
+        "title": "Composition-Derived Material Descriptors",
+        "description": (
+            "Element-property statistics, weighted and unweighted summaries, "
+            "composition entropy, and information lost by aggregation."
+        ),
+        "source_path": "shared/composition-derived-material-descriptors.md",
+        "path": "knowledge/shared/composition-derived-material-descriptors.md",
+        "media_type": "text/markdown",
+    },
+    "composition_structure_phase_and_processing": {
+        "title": "Composition, Structure, Phase, and Processing",
+        "description": (
+            "Relationships among composition, crystal structure, phase, "
+            "defects, processing history, and measured properties."
+        ),
+        "source_path": "shared/composition-structure-phase-and-processing.md",
+        "path": "knowledge/shared/composition-structure-phase-and-processing.md",
+        "media_type": "text/markdown",
+    },
+    "superconductivity_and_critical_temperature": {
+        "title": "Superconductivity and Critical Temperature",
+        "description": (
+            "Zero resistance, the Meissner effect, Cooper pairing, critical "
+            "temperature, critical fields, and type-I/type-II behavior."
+        ),
+        "source_path": (
+            "design_bench/superconductor/"
+            "superconductivity-and-critical-temperature.md"
+        ),
+        "path": (
+            "knowledge/design-bench/superconductor/"
+            "superconductivity-and-critical-temperature.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "superconducting_material_families": {
+        "title": "Superconducting Material Families",
+        "description": (
+            "Major conventional and unconventional superconductor families, "
+            "their structural context, mechanisms, doping, and pressure."
+        ),
+        "source_path": (
+            "design_bench/superconductor/superconducting-material-families.md"
+        ),
+        "path": (
+            "knowledge/design-bench/superconductor/"
+            "superconducting-material-families.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "superconducting_transition_measurement_and_conditions": {
+        "title": "Superconducting Transition Measurement and Conditions",
+        "description": (
+            "Resistive, magnetic, and thermodynamic transition evidence and "
+            "the effects of field, current, pressure, phase, and sample state."
+        ),
+        "source_path": (
+            "design_bench/superconductor/"
+            "superconducting-transition-measurement-and-conditions.md"
+        ),
+        "path": (
+            "knowledge/design-bench/superconductor/"
+            "superconducting-transition-measurement-and-conditions.md"
+        ),
+        "media_type": "text/markdown",
+    },
+}
+
 
 @dataclass(frozen=True, slots=True)
 class SourceObservation:
@@ -94,7 +190,13 @@ def build_superconductor_release(
     )
     data.to_parquet(data_path)
 
-    provenance = _provenance(archive, data_path, statistics)
+    knowledge_artifacts = _write_knowledge_resources(destination)
+    provenance = _provenance(
+        archive,
+        data_path,
+        statistics,
+        knowledge_artifacts=knowledge_artifacts,
+    )
     _write_release_metadata(destination, provenance)
     return provenance
 
@@ -254,6 +356,8 @@ def _provenance(
     archive: Path,
     data_path: Path,
     statistics: dict[str, Any],
+    *,
+    knowledge_artifacts: list[dict[str, Any]],
 ) -> dict[str, Any]:
     return {
         "schema_version": 1,
@@ -292,6 +396,7 @@ def _provenance(
             "design_bench_commit": DESIGN_BENCH_COMMIT,
         },
         "statistics": statistics,
+        "knowledge": knowledge_artifacts,
         "artifact": {
             "path": (
                 f"data/{SUPERCONDUCTOR_CONFIG_NAME}/"
@@ -460,7 +565,14 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
                 },
             }
         ],
-        "knowledge": {},
+        "knowledge": {
+            key: {
+                field: value
+                for field, value in specification.items()
+                if field != "source_path"
+            }
+            for key, specification in KNOWLEDGE_RESOURCES.items()
+        },
     }
     _write_json(collection_path, collection)
     _write_json(manifest_dir / f"{SUPERCONDUCTOR_CONFIG_NAME}.json", manifest)
@@ -566,6 +678,27 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: file.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _write_knowledge_resources(destination: Path) -> list[dict[str, Any]]:
+    source_root = resources.files("sci_modeling_bench").joinpath(
+        "resources", "knowledge"
+    )
+    artifacts: list[dict[str, Any]] = []
+    for key, specification in KNOWLEDGE_RESOURCES.items():
+        content = source_root.joinpath(specification["source_path"]).read_bytes()
+        output_path = destination / specification["path"]
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(content)
+        artifacts.append(
+            {
+                "key": key,
+                "path": specification["path"],
+                "size_bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
+    return artifacts
 
 
 def _write_json(path: Path, content: dict[str, Any]) -> None:

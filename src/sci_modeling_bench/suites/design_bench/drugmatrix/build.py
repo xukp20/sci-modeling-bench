@@ -10,6 +10,7 @@ import math
 import re
 from collections import defaultdict
 from collections.abc import Iterable
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -74,6 +75,104 @@ _NUMERIC_FIELDS = {
     *ENDPOINTS,
 }
 _NAME_PATTERN = re.compile(r"[^a-z0-9]+")
+
+KNOWLEDGE_RESOURCES = {
+    "smiles_molecular_graphs_and_chemical_identity": {
+        "title": "SMILES, Molecular Graphs, and Chemical Identity",
+        "description": (
+            "SMILES atoms, bonds, branches, rings, aromaticity, charge, "
+            "stereochemistry, disconnected components, and canonicalization."
+        ),
+        "source_path": "shared/smiles-molecular-graphs-and-chemical-identity.md",
+        "path": "knowledge/shared/smiles-molecular-graphs-and-chemical-identity.md",
+        "media_type": "text/markdown",
+    },
+    "repeated_dose_toxicology_and_experimental_controls": {
+        "title": "Repeated-Dose Toxicology and Experimental Controls",
+        "description": (
+            "Repeated-dose rodent study design, treatment groups, concurrent "
+            "controls, biological replication, clinical pathology, and interpretation."
+        ),
+        "source_path": (
+            "shared/repeated-dose-toxicology-and-experimental-controls.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "repeated-dose-toxicology-and-experimental-controls.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "toxicokinetics_dose_route_duration_and_vehicle": {
+        "title": "Toxicokinetics: Dose, Route, Duration, and Vehicle",
+        "description": (
+            "Administered dose versus systemic exposure, ADME, dose response, "
+            "route, repeated exposure, sex, and formulation or vehicle effects."
+        ),
+        "source_path": (
+            "shared/toxicokinetics-dose-route-duration-and-vehicle.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "toxicokinetics-dose-route-duration-and-vehicle.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "laboratory_rat_clinical_pathology": {
+        "title": "Laboratory Rat Clinical Pathology",
+        "description": (
+            "Clinical pathology measurements in rats, biological and analytical "
+            "variation, matched controls, reference intervals, and adversity."
+        ),
+        "source_path": "shared/laboratory-rat-clinical-pathology.md",
+        "path": "knowledge/shared/laboratory-rat-clinical-pathology.md",
+        "media_type": "text/markdown",
+    },
+    "erythrocyte_indices_mch_and_mchc": {
+        "title": "Erythrocyte Indices: MCH and MCHC",
+        "description": (
+            "Definitions, formulas, units, dependencies, biological interpretation, "
+            "and analytical limitations of MCH and MCHC."
+        ),
+        "source_path": "shared/erythrocyte-indices-mch-and-mchc.md",
+        "path": "knowledge/shared/erythrocyte-indices-mch-and-mchc.md",
+        "media_type": "text/markdown",
+    },
+    "creatinine_and_renal_function": {
+        "title": "Creatinine and Renal Function",
+        "description": (
+            "Creatinine production and excretion, relation to glomerular filtration, "
+            "nonrenal determinants, sensitivity, and toxicologic interpretation."
+        ),
+        "source_path": "shared/creatinine-and-renal-function.md",
+        "path": "knowledge/shared/creatinine-and-renal-function.md",
+        "media_type": "text/markdown",
+    },
+    "sodium_chloride_and_fluid_acid_base_homeostasis": {
+        "title": "Sodium, Chloride, and Fluid and Acid-Base Homeostasis",
+        "description": (
+            "Extracellular sodium and chloride, tonicity, water balance, renal and "
+            "hormonal regulation, acid-base coupling, and measurement interpretation."
+        ),
+        "source_path": (
+            "shared/sodium-chloride-and-fluid-acid-base-homeostasis.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "sodium-chloride-and-fluid-acid-base-homeostasis.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "phosphorus_homeostasis": {
+        "title": "Phosphorus Homeostasis",
+        "description": (
+            "Circulating inorganic phosphate, intestinal absorption, bone exchange, "
+            "renal handling, and regulation by PTH, FGF23, and vitamin D."
+        ),
+        "source_path": "shared/phosphorus-homeostasis.md",
+        "path": "knowledge/shared/phosphorus-homeostasis.md",
+        "media_type": "text/markdown",
+    },
+}
 
 
 def build_drugmatrix_release(
@@ -148,6 +247,7 @@ def build_drugmatrix_release(
         crosswalk_report,
         pool_statistics,
     )
+    provenance["knowledge"] = _write_knowledge_resources(destination)
     _write_release_metadata(destination, provenance)
     return provenance
 
@@ -659,7 +759,14 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
                 },
             }
         ],
-        "knowledge": {},
+        "knowledge": {
+            key: {
+                field: value
+                for field, value in specification.items()
+                if field != "source_path"
+            }
+            for key, specification in KNOWLEDGE_RESOURCES.items()
+        },
     }
     _write_json(collection_path, collection)
     _write_json(manifest_dir / f"{DRUGMATRIX_CONFIG_NAME}.json", manifest)
@@ -780,6 +887,27 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: file.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _write_knowledge_resources(destination: Path) -> list[dict[str, Any]]:
+    source_root = resources.files("sci_modeling_bench").joinpath(
+        "resources", "knowledge"
+    )
+    artifacts: list[dict[str, Any]] = []
+    for key, specification in KNOWLEDGE_RESOURCES.items():
+        content = source_root.joinpath(specification["source_path"]).read_bytes()
+        output_path = destination / specification["path"]
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(content)
+        artifacts.append(
+            {
+                "key": key,
+                "path": specification["path"],
+                "size_bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
+    return artifacts
 
 
 def _write_json(path: Path, content: dict[str, Any]) -> None:

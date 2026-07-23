@@ -36,6 +36,18 @@ TFRECORD_URL = "https://storage.googleapis.com/nasbench/nasbench_only108.tfrecor
 TFRECORD_SIZE = 522_767_376
 TFRECORD_SHA256 = "4c39c3936e36a85269881d659e44e61a245babcb72cb374eacacf75d0e5f4fd1"
 
+ARCHITECTURE_ENCODING_DESCRIPTION = (
+    "One valid 31-token NASBench-101 cell encoding. The grammar is "
+    "[start, node operations..., separator, strict-upper-triangle adjacency..., "
+    "stop, padding...]. Tokens are 0=start, 1=stop, 2=padding, 3=separator, "
+    "4=input, 5=output, 6=1x1 convolution, 7=3x3 convolution, "
+    "8=3x3 max-pooling, 9=no edge, and 10=edge. For n vertices, the "
+    "n(n-1)/2 adjacency entries are flattened from the strict upper triangle "
+    "in row-major order: (0,1), (0,2), ..., (0,n-1), (1,2), ..., "
+    "(n-2,n-1). A valid cell has 2 to 7 vertices, at most 9 edges, and every "
+    "vertex lies on a path from input to output."
+)
+
 
 def build_cell_dag_nas_release(
     tfrecord_path: str | Path,
@@ -343,7 +355,7 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
         "inputs": [
             {
                 "name": "architecture",
-                "description": "One valid 31-token NASBench-101 cell encoding.",
+                "description": ARCHITECTURE_ENCODING_DESCRIPTION,
                 "constraints": [
                     {"kind": "length", "minimum": 31, "maximum": 31},
                     {"kind": "allowed_values", "values": list(range(11))},

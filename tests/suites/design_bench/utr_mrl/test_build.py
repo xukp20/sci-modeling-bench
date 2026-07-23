@@ -38,4 +38,11 @@ def test_builder_replays_pinned_mrnabench_parquet(tmp_path) -> None:
         "visible_observations": 76_877,
     }
     assert manifest["splits"][0]["attributes"]["reporter"] == "eGFP"
+    assert manifest["splits"][0]["attributes"]["main_start_junction"] == (
+        "<50-nt variable sequence>ATG"
+    )
+    sequence_input = manifest["inputs"][0]
+    assert "fixed 25-nucleotide leader segment" in sequence_input["description"]
+    assert "fixed eGFP main start codon ATG" in sequence_input["description"]
+    assert "T represents U" in sequence_input["description"]
     assert manifest["knowledge"] == {}

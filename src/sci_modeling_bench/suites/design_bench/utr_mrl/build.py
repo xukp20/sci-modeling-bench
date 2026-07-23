@@ -322,7 +322,14 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
         "inputs": [
             {
                 "name": "sequence",
-                "description": "Uppercase 50-nucleotide variable 5' UTR sequence.",
+                "description": (
+                    "The 5'-to-3' DNA-alphabet representation of the "
+                    "50-nucleotide variable segment at the 3' end of the "
+                    "reporter 5' leader. It is preceded by a fixed "
+                    "25-nucleotide leader segment and followed immediately by "
+                    "the fixed eGFP main start codon ATG; T represents U in "
+                    "the transcribed RNA."
+                ),
                 "constraints": [
                     {"kind": "alphabet", "symbols": ["A", "C", "G", "T"]},
                     {"kind": "length", "minimum": 50, "maximum": 50},
@@ -381,6 +388,8 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
                     "rna_chemistry": "unmodified",
                     "cell_line": "HEK293T",
                     "variable_region_length": UTR_LENGTH,
+                    "fixed_upstream_leader_length": len(PRIMER_SEQUENCE),
+                    "main_start_junction": "<50-nt variable sequence>ATG",
                     "target_aggregation": "mean_of_two_replicates",
                 },
             }

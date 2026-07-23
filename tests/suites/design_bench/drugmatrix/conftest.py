@@ -15,7 +15,7 @@ from sci_modeling_bench.dataset.manifest import DatasetManifest
 from sci_modeling_bench.suites.design_bench.drugmatrix import DrugMatrixDataset
 from sci_modeling_bench.suites.design_bench.drugmatrix._conditions import ENDPOINTS
 
-PUBLISHED_REVISION = "013a4d698f61db49a6c26f986e5f3bab143aa4fe"
+PUBLISHED_REVISION = "d8b9ea3c78ed33edf0869a427940a0651eb49f52"
 
 
 class TinyDrugMatrixRepository:

@@ -7,10 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-07-23
+
+### Added
+
+- Curated, cited domain-knowledge resources for every Design-Bench Dataset,
+  exposed through the lazy `Dataset.knowledge` mapping and packaged with the
+  corresponding Hugging Face Dataset manifests.
+
 ### Changed
 
 - TFBind10 Pho4 Agent inputs now describe how each ten-character flank
   encodes the five bases on either side of the fixed `CACGTG` E-box core.
+- UTR MRL Agent inputs now describe the fixed upstream leader and the
+  immediate junction between the 50-nucleotide variable sequence and the
+  eGFP start codon.
+- CellDAG-NAS Agent inputs now define the complete 31-token architecture
+  grammar, token meanings, adjacency traversal order, and graph constraints.
+- The default pinned Hopper Controller and DrugMatrix revisions now resolve
+  the unchanged canonical tables together with their domain-knowledge
+  resources.
 
 ## [0.9.0] - 2026-07-22
 
@@ -254,7 +270,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dataset artifacts are distributed separately from the Python package and
   retain their own source, citation, provenance, and license metadata.
 
-[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/xukp20/sci-modeling-bench/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/xukp20/sci-modeling-bench/compare/v0.5.0...v0.6.0

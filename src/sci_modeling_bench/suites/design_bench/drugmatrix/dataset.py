@@ -18,7 +18,7 @@ from sci_modeling_bench.dataset import (
 from sci_modeling_bench.suites.design_bench.drugmatrix._conditions import ENDPOINTS
 
 DEFAULT_DRUGMATRIX_REPO_ID = "sci-modeling-bench/design-bench"
-DEFAULT_DRUGMATRIX_REVISION = "013a4d698f61db49a6c26f986e5f3bab143aa4fe"
+DEFAULT_DRUGMATRIX_REVISION = "d8b9ea3c78ed33edf0869a427940a0651eb49f52"
 DRUGMATRIX_CONFIG_NAME = "drugmatrix_clinical_pathology"
 DRUGMATRIX_DEFAULT_SPLIT = "observations"
 DEFAULT_DRUGMATRIX_SOURCE = HubDatasetSource(

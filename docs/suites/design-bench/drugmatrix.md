@@ -49,7 +49,7 @@ clinical chemistry/hematology workbook and curated chemical structure file.
 The canonical Parquet SHA-256 is
 `d597095922573c5b459ec2ce9e693b03a26b6098846dbc90f0bbb78a567099f4`.
 The default immutable Hub revision is
-`013a4d698f61db49a6c26f986e5f3bab143aa4fe`.
+`d8b9ea3c78ed33edf0869a427940a0651eb49f52`.
 
 | Build input | SHA-256 |
 |---|---|

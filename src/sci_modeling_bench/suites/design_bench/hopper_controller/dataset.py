@@ -26,7 +26,7 @@ from sci_modeling_bench.suites.design_bench.hopper_controller.simulator import (
 
 DEFAULT_HOPPER_CONTROLLER_REPO_ID = "sci-modeling-bench/design-bench"
 DEFAULT_HOPPER_CONTROLLER_REVISION = (
-    "7b513a5995110f262b8a322cc4bd9ac88e575aee"
+    "d8b9ea3c78ed33edf0869a427940a0651eb49f52"
 )
 HOPPER_CONTROLLER_CONFIG_NAME = "hopper_controller"
 HOPPER_CONTROLLER_DEFAULT_SPLIT = "policies"

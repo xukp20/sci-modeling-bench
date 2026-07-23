@@ -26,7 +26,7 @@ def test_published_dataset_and_all_endpoint_tasks(
     assert len(data) == 10_605
     assert report.valid
     assert published_drugmatrix_dataset.resolved_revision == (
-        "013a4d698f61db49a6c26f986e5f3bab143aa4fe"
+        "d8b9ea3c78ed33edf0869a427940a0651eb49f52"
     )
     for endpoint in DRUGMATRIX_ENDPOINTS:
         task = DrugMatrixCandidatePoolRankingTask(

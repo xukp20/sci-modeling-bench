@@ -50,7 +50,7 @@ print(len(policies))
 ```
 
 The published revision is
-`7b513a5995110f262b8a322cc4bd9ac88e575aee`. It was downloaded from the Hub,
+`d8b9ea3c78ed33edf0869a427940a0651eb49f52`. It was downloaded from the Hub,
 validated over all 3,200 rows, and exercised through the complete Task path.
 The implementation still accepts an alternate `repo_id` and `revision`.
 

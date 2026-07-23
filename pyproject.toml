@@ -79,6 +79,7 @@ sci_modeling_bench = [
   "resources/knowledge/design_bench/tfbind10_pho4/*.md",
   "resources/knowledge/design_bench/superconductor/*.md",
   "resources/knowledge/design_bench/hopper_controller/*.md",
+  "resources/knowledge/design_bench/gfp/*.md",
 ]
 
 [tool.pytest.ini_options]

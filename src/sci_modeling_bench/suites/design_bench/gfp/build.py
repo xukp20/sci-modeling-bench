@@ -7,6 +7,7 @@ import csv
 import hashlib
 import json
 from collections.abc import Iterable
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -91,6 +92,110 @@ _GENOTYPE_COLUMNS = (
     "aaMutations",
 )
 
+KNOWLEDGE_RESOURCES = {
+    "mixcr_mutation_encoding": {
+        "title": "MiXCR Mutation Encoding",
+        "description": (
+            "Reference-relative substitution, deletion, and insertion notation, "
+            "zero-based coordinates, validation, and amino-acid adaptation."
+        ),
+        "source_path": "shared/mixcr-mutation-encoding.md",
+        "path": "knowledge/shared/mixcr-mutation-encoding.md",
+        "media_type": "text/markdown",
+    },
+    "protein_sequences_amino_acids_and_substitutions": {
+        "title": "Protein Sequences, Amino Acids, and Substitutions",
+        "description": (
+            "Protein sequence notation, amino-acid physicochemical classes, "
+            "residue coordinates, and substitution semantics."
+        ),
+        "source_path": "shared/protein-sequences-amino-acids-and-substitutions.md",
+        "path": (
+            "knowledge/shared/"
+            "protein-sequences-amino-acids-and-substitutions.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "protein_folding_stability_and_mutational_effects": {
+        "title": "Protein Folding, Stability, and Mutational Effects",
+        "description": (
+            "Folding thermodynamics and kinetics, structural environments, "
+            "aggregation, and mechanisms by which substitutions alter proteins."
+        ),
+        "source_path": "shared/protein-folding-stability-and-mutational-effects.md",
+        "path": (
+            "knowledge/shared/"
+            "protein-folding-stability-and-mutational-effects.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "protein_fitness_landscapes_and_epistasis": {
+        "title": "Protein Fitness Landscapes and Epistasis",
+        "description": (
+            "Genotype-to-phenotype landscapes, mutational neighborhoods, "
+            "additive expectations, and magnitude and sign epistasis."
+        ),
+        "source_path": "shared/protein-fitness-landscapes-and-epistasis.md",
+        "path": "knowledge/shared/protein-fitness-landscapes-and-epistasis.md",
+        "media_type": "text/markdown",
+    },
+    "fluorescence_photophysics_and_brightness": {
+        "title": "Fluorescence Photophysics and Brightness",
+        "description": (
+            "Absorption, excitation, emission, extinction coefficient, quantum "
+            "yield, molecular brightness, photobleaching, and environmental effects."
+        ),
+        "source_path": "shared/fluorescence-photophysics-and-brightness.md",
+        "path": "knowledge/shared/fluorescence-photophysics-and-brightness.md",
+        "media_type": "text/markdown",
+    },
+    "flow_cytometry_and_barcode_linked_fluorescence_measurement": {
+        "title": "Flow Cytometry and Barcode-Linked Fluorescence Measurement",
+        "description": (
+            "Single-cell fluorescence measurement, sorting bins, calibration, "
+            "autofluorescence, barcode linkage, coverage, and aggregation."
+        ),
+        "source_path": (
+            "shared/flow-cytometry-and-barcode-linked-fluorescence-measurement.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "flow-cytometry-and-barcode-linked-fluorescence-measurement.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "gfp_structure_chromophore_and_maturation": {
+        "title": "GFP Structure, Chromophore, and Maturation",
+        "description": (
+            "The GFP beta-barrel, central chromophore-forming residues, "
+            "autocatalytic maturation, oxygen dependence, and protonation."
+        ),
+        "source_path": (
+            "design_bench/gfp/gfp-structure-chromophore-and-maturation.md"
+        ),
+        "path": (
+            "knowledge/design-bench/gfp/"
+            "gfp-structure-chromophore-and-maturation.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "aequorea_victoria_gfp_and_engineered_variants": {
+        "title": "Aequorea victoria GFP and Engineered Variants",
+        "description": (
+            "Experimentally established properties of avGFP and selected "
+            "engineered GFP variants, with conventional residue numbering."
+        ),
+        "source_path": (
+            "design_bench/gfp/aequorea-victoria-gfp-and-engineered-variants.md"
+        ),
+        "path": (
+            "knowledge/design-bench/gfp/"
+            "aequorea-victoria-gfp-and-engineered-variants.md"
+        ),
+        "media_type": "text/markdown",
+    },
+}
+
 
 def build_gfp_release(
     amino_acid_table: str | Path,
@@ -126,6 +231,7 @@ def build_gfp_release(
     data.to_parquet(data_path)
 
     provenance = _provenance(sources, data_path, statistics, reference_sequence)
+    provenance["knowledge"] = _write_knowledge_resources(destination)
     _write_release_metadata(destination, provenance)
     return provenance
 
@@ -553,7 +659,14 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
                 },
             }
         ],
-        "knowledge": {},
+        "knowledge": {
+            key: {
+                field: value
+                for field, value in specification.items()
+                if field != "source_path"
+            }
+            for key, specification in KNOWLEDGE_RESOURCES.items()
+        },
     }
     _write_json(collection_path, collection)
     _write_json(manifest_dir / f"{GFP_CONFIG_NAME}.json", manifest)
@@ -679,6 +792,27 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: file.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _write_knowledge_resources(destination: Path) -> list[dict[str, Any]]:
+    source_root = resources.files("sci_modeling_bench").joinpath(
+        "resources", "knowledge"
+    )
+    artifacts: list[dict[str, Any]] = []
+    for key, specification in KNOWLEDGE_RESOURCES.items():
+        content = source_root.joinpath(specification["source_path"]).read_bytes()
+        output_path = destination / specification["path"]
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(content)
+        artifacts.append(
+            {
+                "key": key,
+                "path": specification["path"],
+                "size_bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
+    return artifacts
 
 
 def _write_json(path: Path, content: dict[str, Any]) -> None:

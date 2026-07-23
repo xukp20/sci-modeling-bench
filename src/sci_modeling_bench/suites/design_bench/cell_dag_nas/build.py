@@ -8,6 +8,7 @@ import hashlib
 import json
 import struct
 from collections.abc import Iterable, Iterator
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,102 @@ ARCHITECTURE_ENCODING_DESCRIPTION = (
     "(n-2,n-1). A valid cell has 2 to 7 vertices, at most 9 edges, and every "
     "vertex lies on a path from input to output."
 )
+
+KNOWLEDGE_RESOURCES = {
+    "directed_acyclic_computation_graphs_and_graph_isomorphism": {
+        "title": "Directed Acyclic Computation Graphs and Graph Isomorphism",
+        "description": (
+            "DAGs, topological order, computation paths, labeled graph "
+            "isomorphism, automorphisms, and adjacency representations."
+        ),
+        "source_path": (
+            "shared/"
+            "directed-acyclic-computation-graphs-and-graph-isomorphism.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "directed-acyclic-computation-graphs-and-graph-isomorphism.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "convolutional_feature_maps_kernels_and_receptive_fields": {
+        "title": "Convolutional Feature Maps, Kernels, and Receptive Fields",
+        "description": (
+            "Two-dimensional convolution, channels, kernel size, parameter count, "
+            "spatial dimensions, and receptive fields."
+        ),
+        "source_path": (
+            "shared/convolutional-feature-maps-kernels-and-receptive-fields.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "convolutional-feature-maps-kernels-and-receptive-fields.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "pooling_branching_and_feature_aggregation": {
+        "title": "Pooling, Branching, and Feature Aggregation",
+        "description": (
+            "Max pooling, parallel computation paths, elementwise summation, "
+            "concatenation, residual connections, and tensor compatibility."
+        ),
+        "source_path": "shared/pooling-branching-and-feature-aggregation.md",
+        "path": "knowledge/shared/pooling-branching-and-feature-aggregation.md",
+        "media_type": "text/markdown",
+    },
+    "cell_based_convolutional_neural_networks": {
+        "title": "Cell-Based Convolutional Neural Networks",
+        "description": (
+            "Reusable neural-network cells, micro- and macro-architecture, "
+            "operation graphs, repeated modules, and shape transitions."
+        ),
+        "source_path": "shared/cell-based-convolutional-neural-networks.md",
+        "path": "knowledge/shared/cell-based-convolutional-neural-networks.md",
+        "media_type": "text/markdown",
+    },
+    "neural_architecture_search_spaces_and_performance_evaluation": {
+        "title": "Neural Architecture Search Spaces and Performance Evaluation",
+        "description": (
+            "NAS search spaces, search strategies, performance estimation, "
+            "tabular benchmarks, proxy evaluation, and protocol dependence."
+        ),
+        "source_path": (
+            "shared/"
+            "neural-architecture-search-spaces-and-performance-evaluation.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "neural-architecture-search-spaces-and-performance-evaluation.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "stochastic_neural_network_training_and_repeated_evaluation": {
+        "title": "Stochastic Neural-Network Training and Repeated Evaluation",
+        "description": (
+            "Random initialization, data ordering, augmentation, implementation "
+            "noise, repeated runs, uncertainty, and train-validation-test roles."
+        ),
+        "source_path": (
+            "shared/"
+            "stochastic-neural-network-training-and-repeated-evaluation.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "stochastic-neural-network-training-and-repeated-evaluation.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "cifar10_image_classification": {
+        "title": "CIFAR-10 Image Classification",
+        "description": (
+            "CIFAR-10 image dimensions, classes, dataset partitions, image "
+            "classification objective, and interpretation limitations."
+        ),
+        "source_path": "shared/cifar10-image-classification.md",
+        "path": "knowledge/shared/cifar10-image-classification.md",
+        "media_type": "text/markdown",
+    },
+}
 
 
 def build_cell_dag_nas_release(
@@ -104,6 +201,7 @@ def build_cell_dag_nas_release(
         parity=parity,
         visible_stats=visible_stats,
     )
+    provenance["knowledge"] = _write_knowledge_resources(destination)
     _write_release_metadata(destination, provenance)
     return provenance
 
@@ -426,7 +524,14 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
                 },
             }
         ],
-        "knowledge": {},
+        "knowledge": {
+            key: {
+                field: value
+                for field, value in specification.items()
+                if field != "source_path"
+            }
+            for key, specification in KNOWLEDGE_RESOURCES.items()
+        },
     }
     _write_json(collection_path, collection)
     _write_json(manifest_dir / f"{CELL_DAG_NAS_CONFIG_NAME}.json", manifest)
@@ -598,6 +703,27 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _write_knowledge_resources(destination: Path) -> list[dict[str, Any]]:
+    source_root = resources.files("sci_modeling_bench").joinpath(
+        "resources", "knowledge"
+    )
+    artifacts: list[dict[str, Any]] = []
+    for key, specification in KNOWLEDGE_RESOURCES.items():
+        content = source_root.joinpath(specification["source_path"]).read_bytes()
+        output_path = destination / specification["path"]
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(content)
+        artifacts.append(
+            {
+                "key": key,
+                "path": specification["path"],
+                "size_bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
+    return artifacts
 
 
 def _write_json(path: Path, value: dict[str, Any]) -> None:

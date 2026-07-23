@@ -9,6 +9,7 @@ import os
 import platform
 import time
 from concurrent.futures import ProcessPoolExecutor
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,85 @@ ROLLOUT_REPEATS = 500
 ROLLOUT_BASE_SEED = 20_260_717
 DESIGN_BENCH_COMMIT = "e52939588421b5433f6f2e9b359cf013c542bd89"
 DATASET_VERSION = "1.0.0"
+
+KNOWLEDGE_RESOURCES = {
+    "reinforcement_learning_and_episodic_return": {
+        "title": "Reinforcement Learning and Episodic Return",
+        "description": (
+            "Agent-environment interaction, policies, trajectories, episodic "
+            "return, expected performance, termination, and truncation."
+        ),
+        "source_path": "shared/reinforcement-learning-and-episodic-return.md",
+        "path": "knowledge/shared/reinforcement-learning-and-episodic-return.md",
+        "media_type": "text/markdown",
+    },
+    "continuous_control_and_gaussian_policies": {
+        "title": "Continuous Control and Gaussian Policies",
+        "description": (
+            "Continuous actions, diagonal Gaussian policies, log standard "
+            "deviations, stochastic sampling, and bounded-action clipping."
+        ),
+        "source_path": "shared/continuous-control-and-gaussian-policies.md",
+        "path": "knowledge/shared/continuous-control-and-gaussian-policies.md",
+        "media_type": "text/markdown",
+    },
+    "feedforward_neural_policy_parameterization": {
+        "title": "Feedforward Neural Policy Parameterization",
+        "description": (
+            "Dense neural policy equations, parameter blocks, tanh activation, "
+            "flattening conventions, and hidden-unit symmetries."
+        ),
+        "source_path": "shared/feedforward-neural-policy-parameterization.md",
+        "path": "knowledge/shared/feedforward-neural-policy-parameterization.md",
+        "media_type": "text/markdown",
+    },
+    "stochastic_rollout_evaluation_and_uncertainty": {
+        "title": "Stochastic Rollout Evaluation and Uncertainty",
+        "description": (
+            "Repeated policy returns, distribution summaries, sampling "
+            "uncertainty, heteroscedasticity, and common random numbers."
+        ),
+        "source_path": (
+            "shared/stochastic-rollout-evaluation-and-uncertainty.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "stochastic-rollout-evaluation-and-uncertainty.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "proximal_policy_optimization_and_policy_checkpoints": {
+        "title": "Proximal Policy Optimization and Policy Checkpoints",
+        "description": (
+            "On-policy learning, the PPO clipped surrogate, actor and critic "
+            "roles, stochastic optimization, and checkpoint interpretation."
+        ),
+        "source_path": (
+            "shared/proximal-policy-optimization-and-policy-checkpoints.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "proximal-policy-optimization-and-policy-checkpoints.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "hopper_locomotion_and_mujoco_dynamics": {
+        "title": "Hopper Locomotion and MuJoCo Dynamics",
+        "description": (
+            "Hopper-v5 body, observations, torque actions, reward and episode "
+            "semantics, contact-rich locomotion, and MuJoCo simulation."
+        ),
+        "source_path": (
+            "design_bench/hopper_controller/"
+            "hopper-locomotion-and-mujoco-dynamics.md"
+        ),
+        "path": (
+            "knowledge/design-bench/hopper_controller/"
+            "hopper-locomotion-and-mujoco-dynamics.md"
+        ),
+        "media_type": "text/markdown",
+    },
+}
 
 
 def generate_rollout_artifact(
@@ -288,6 +368,7 @@ def build_hopper_controller_release(
     )
     data_path.parent.mkdir(parents=True, exist_ok=True)
     data.to_parquet(data_path)
+    knowledge_artifacts = _write_knowledge_resources(destination)
     provenance = {
         "schema_version": 1,
         "dataset_id": "design-bench/hopper-controller",
@@ -315,6 +396,7 @@ def build_hopper_controller_release(
             "policy_feature_engineering": "none",
             "trajectory_annotation": "none",
         },
+        "knowledge": knowledge_artifacts,
         "artifact": {
             "path": (
                 f"data/{HOPPER_CONTROLLER_CONFIG_NAME}/"
@@ -550,6 +632,14 @@ def _write_release_metadata(
                 },
             }
         ],
+        "knowledge": {
+            key: {
+                field: value
+                for field, value in specification.items()
+                if field != "source_path"
+            }
+            for key, specification in KNOWLEDGE_RESOURCES.items()
+        },
     }
     collection_path.write_text(
         json.dumps(collection, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -589,6 +679,27 @@ def _sha256(path: Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _write_knowledge_resources(destination: Path) -> list[dict[str, Any]]:
+    source_root = resources.files("sci_modeling_bench").joinpath(
+        "resources", "knowledge"
+    )
+    artifacts: list[dict[str, Any]] = []
+    for key, specification in KNOWLEDGE_RESOURCES.items():
+        content = source_root.joinpath(specification["source_path"]).read_bytes()
+        output_path = destination / specification["path"]
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(content)
+        artifacts.append(
+            {
+                "key": key,
+                "path": specification["path"],
+                "size_bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
+    return artifacts
 
 
 def main() -> None:

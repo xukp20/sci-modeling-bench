@@ -12,12 +12,17 @@ from sci_modeling_bench.dataset import Dataset
 from sci_modeling_bench.exceptions import ProtocolError
 from sci_modeling_bench.protocol import (
     AgentInputBundle,
+    AgentInputContext,
     Protocol,
     agent_input_manifest,
     agent_table_view,
 )
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4._sequence import (
+    FIXED_EBOX_CORE,
+    FLANK_LENGTH_PER_SIDE,
+    FULL_SITE_TEMPLATE,
     SEQUENCE_COUNT,
+    SEQUENCE_LENGTH,
 )
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4.dataset import (
     TFBIND10_PHO4_DEFAULT_SPLIT,
@@ -98,6 +103,25 @@ class TFBind10Pho4LowerHalfProtocol(Protocol[HFDataset]):
                 protocol_id=self.protocol_id,
                 split=selected_split,
                 views=(view,),
+                context=(
+                    AgentInputContext(
+                        name="sequence_layout",
+                        description=(
+                            "Physical site layout encoded by every ten-character "
+                            "sequence field and candidate."
+                        ),
+                        value={
+                            "candidate_length": SEQUENCE_LENGTH,
+                            "serialization": "upstream_then_downstream",
+                            "upstream_length": FLANK_LENGTH_PER_SIDE,
+                            "fixed_core": FIXED_EBOX_CORE,
+                            "downstream_length": FLANK_LENGTH_PER_SIDE,
+                            "full_site_template": FULL_SITE_TEMPLATE,
+                            "candidate_includes_fixed_core": False,
+                            "orientation": "5prime_to_3prime",
+                        },
+                    ),
+                ),
             ),
         )
 

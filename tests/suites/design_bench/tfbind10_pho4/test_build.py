@@ -28,5 +28,7 @@ def test_builder_replays_pinned_figshare_archive(tmp_path) -> None:
 
     assert len(data) == EXPECTED_OBSERVATION_ROWS
     assert provenance["statistics"]["unique_sequences"] == 4**10
+    assert "fixed CACGTG E-box core" in manifest["inputs"][0]["description"]
+    assert "NNNNNCACGTGNNNNN" in manifest["inputs"][0]["description"]
     assert manifest["targets"][0]["name"] == "observed_ddg"
     assert "affinity_score" not in data.column_names

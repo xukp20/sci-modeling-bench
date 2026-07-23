@@ -18,6 +18,9 @@ import pyarrow.csv as pacsv
 import pyarrow.parquet as pq
 
 from sci_modeling_bench.suites.design_bench.tfbind10_pho4._sequence import (
+    FIXED_EBOX_CORE,
+    FLANK_LENGTH_PER_SIDE,
+    FULL_SITE_TEMPLATE,
     SEQUENCE_COUNT,
     sequence_indices,
 )
@@ -458,7 +461,16 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
         "inputs": [
             {
                 "name": "sequence",
-                "description": "Uppercase DNA flank sequence of exactly ten nucleotides.",
+                "description": (
+                    "Ten variable DNA nucleotides flanking the fixed "
+                    f"{FIXED_EBOX_CORE} E-box core. Characters 1 through "
+                    f"{FLANK_LENGTH_PER_SIDE} are immediately upstream of the "
+                    f"core and characters {FLANK_LENGTH_PER_SIDE + 1} through "
+                    "10 are immediately downstream, in the displayed strand's "
+                    "5-prime-to-3-prime orientation. The fixed core is excluded "
+                    f"from this field; the full assayed site follows the template "
+                    f"{FULL_SITE_TEMPLATE}."
+                ),
                 "constraints": [
                     {"kind": "alphabet", "symbols": ["A", "C", "G", "T"]},
                     {"kind": "length", "minimum": 10, "maximum": 10},

@@ -111,6 +111,20 @@ def test_tfbind10_manifest_exposes_no_candidate_view(
     _assert_complete_manifest(bundle, expected_views={"observations": bundle.data})
     assert [view.name for view in bundle.manifest.views] == ["observations"]
     assert "affinity_score" not in bundle.manifest.model_dump_json()
+    sequence_field = bundle.manifest.views[0].fields[0]
+    assert sequence_field.name == "sequence"
+    assert "fixed CACGTG core" in sequence_field.description
+    context = {item.name: item.value for item in bundle.manifest.context}
+    assert context["sequence_layout"] == {
+        "candidate_length": 10,
+        "serialization": "upstream_then_downstream",
+        "upstream_length": 5,
+        "fixed_core": "CACGTG",
+        "downstream_length": 5,
+        "full_site_template": "NNNNNCACGTGNNNNN",
+        "candidate_includes_fixed_core": False,
+        "orientation": "5prime_to_3prime",
+    }
 
 
 def test_cell_dag_manifest_describes_generated_alias_view(

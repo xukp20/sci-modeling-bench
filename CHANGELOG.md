@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- TFBind10 Pho4 Agent inputs now describe how each ten-character flank
+  encodes the five bases on either side of the fixed `CACGTG` E-box core.
+
 ## [0.9.0] - 2026-07-22
 
 ### Added

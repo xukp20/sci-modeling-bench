@@ -91,7 +91,11 @@ def tiny_tfbind10_pho4_dataset() -> TFBind10Pho4Dataset:
                 "inputs": [
                     {
                         "name": "sequence",
-                        "description": "DNA 10-mer.",
+                        "description": (
+                            "Ten variable DNA nucleotides serialized as five "
+                            "upstream and five downstream bases around a fixed "
+                            "CACGTG core, which is excluded from this field."
+                        ),
                         "constraints": [
                             {"kind": "alphabet", "symbols": ["A", "C", "G", "T"]},
                             {"kind": "length", "minimum": 10, "maximum": 10},

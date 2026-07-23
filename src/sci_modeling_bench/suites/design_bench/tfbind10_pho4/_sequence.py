@@ -12,6 +12,13 @@ import pyarrow.compute as pc
 SEQUENCE_LENGTH = 10
 SEQUENCE_COUNT = 4**SEQUENCE_LENGTH
 ALPHABET = "ACGT"
+FLANK_LENGTH_PER_SIDE = 5
+FIXED_EBOX_CORE = "CACGTG"
+FULL_SITE_TEMPLATE = (
+    f"{'N' * FLANK_LENGTH_PER_SIDE}"
+    f"{FIXED_EBOX_CORE}"
+    f"{'N' * FLANK_LENGTH_PER_SIDE}"
+)
 
 _DIGIT_BY_BYTE = np.full(256, -1, dtype=np.int8)
 for _digit, _symbol in enumerate(ALPHABET.encode("ascii")):

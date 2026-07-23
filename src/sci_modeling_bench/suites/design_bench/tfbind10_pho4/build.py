@@ -8,6 +8,7 @@ import hashlib
 import json
 import tarfile
 from collections.abc import Iterable
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -68,6 +69,89 @@ DESIGN_BENCH_PROCESSOR = (
 DATASET_REPO_ID = "sci-modeling-bench/design-bench"
 DATASET_VERSION = "1.0.0"
 
+KNOWLEDGE_RESOURCES = {
+    "dna_structure_and_base_pairing": {
+        "title": "DNA Structure and Base Pairing",
+        "description": (
+            "DNA strand direction, complementarity, canonical base pairing, "
+            "grooves, and sequence-dependent duplex structure."
+        ),
+        "source_path": "shared/dna-structure-and-base-pairing.md",
+        "path": "knowledge/shared/dna-structure-and-base-pairing.md",
+        "media_type": "text/markdown",
+    },
+    "transcription_factor_dna_binding": {
+        "title": "Transcription Factor–DNA Binding",
+        "description": (
+            "Physical modes of DNA recognition and the distinctions among "
+            "affinity, specificity, occupancy, and regulatory activity."
+        ),
+        "source_path": "shared/transcription-factor-dna-binding.md",
+        "path": "knowledge/shared/transcription-factor-dna-binding.md",
+        "media_type": "text/markdown",
+    },
+    "binding_sites_motifs_and_sequence_context": {
+        "title": "Binding Sites, Motifs, and Sequence Context",
+        "description": (
+            "Binding sites, consensus sequences, PFM/PWM representations, "
+            "strand orientation, and nucleotide dependencies."
+        ),
+        "source_path": "shared/binding-sites-motifs-and-sequence-context.md",
+        "path": "knowledge/shared/binding-sites-motifs-and-sequence-context.md",
+        "media_type": "text/markdown",
+    },
+    "binding_affinity_and_thermodynamics": {
+        "title": "Binding Affinity and Thermodynamics",
+        "description": (
+            "Equilibrium association and dissociation constants, occupancy, "
+            "binding Gibbs energy, and kinetic rate constants."
+        ),
+        "source_path": "shared/binding-affinity-and-thermodynamics.md",
+        "path": "knowledge/shared/binding-affinity-and-thermodynamics.md",
+        "media_type": "text/markdown",
+    },
+    "basic_helix_loop_helix_and_ebox_recognition": {
+        "title": "Basic Helix–Loop–Helix Proteins and E-box Recognition",
+        "description": (
+            "bHLH domain architecture, dimerization, E-box conventions, "
+            "and recognition beyond a short motif core."
+        ),
+        "source_path": (
+            "shared/basic-helix-loop-helix-and-ebox-recognition.md"
+        ),
+        "path": (
+            "knowledge/shared/"
+            "basic-helix-loop-helix-and-ebox-recognition.md"
+        ),
+        "media_type": "text/markdown",
+    },
+    "binding_energy_topography_by_sequencing": {
+        "title": "Binding Energy Topography by Sequencing",
+        "description": (
+            "BET-seq assay principles, bound/input count enrichment, "
+            "relative binding energy, and measurement limitations."
+        ),
+        "source_path": "shared/binding-energy-topography-by-sequencing.md",
+        "path": "knowledge/shared/binding-energy-topography-by-sequencing.md",
+        "media_type": "text/markdown",
+    },
+    "pho4_and_dna_recognition": {
+        "title": "Pho4 and DNA Recognition",
+        "description": (
+            "Pho4 bHLH biology, CACGTG recognition, flanking-base contacts, "
+            "and the distinction between affinity and cellular regulation."
+        ),
+        "source_path": (
+            "design_bench/tfbind10_pho4/pho4-and-dna-recognition.md"
+        ),
+        "path": (
+            "knowledge/design-bench/tfbind10_pho4/"
+            "pho4-and-dna-recognition.md"
+        ),
+        "media_type": "text/markdown",
+    },
+}
+
 _SOURCE_COLUMNS = {
     "flank": pa.string(),
     "tf_count": pa.int32(),
@@ -108,7 +192,13 @@ def build_tfbind10_pho4_release(
     )
     data_path.parent.mkdir(parents=True, exist_ok=True)
     statistics = _write_pho4_parquet(archive, data_path)
-    provenance = _build_provenance(archive, data_path, statistics)
+    knowledge_artifacts = _write_knowledge_resources(destination)
+    provenance = _build_provenance(
+        archive,
+        data_path,
+        statistics,
+        knowledge_artifacts=knowledge_artifacts,
+    )
     _write_release_metadata(destination, provenance)
     return provenance
 
@@ -343,6 +433,8 @@ def _build_provenance(
     archive: Path,
     data_path: Path,
     statistics: dict[str, Any],
+    *,
+    knowledge_artifacts: list[dict[str, Any]],
 ) -> dict[str, Any]:
     return {
         "schema_version": 1,
@@ -380,6 +472,7 @@ def _build_provenance(
             "legacy_design_bench_commit": DESIGN_BENCH_COMMIT,
         },
         "statistics": statistics,
+        "knowledge": knowledge_artifacts,
         "artifact": {
             "path": (
                 f"data/{TFBIND10_PHO4_CONFIG_NAME}/"
@@ -540,7 +633,14 @@ def _write_release_metadata(destination: Path, provenance: dict[str, Any]) -> No
                 },
             }
         ],
-        "knowledge": {},
+        "knowledge": {
+            key: {
+                field: value
+                for field, value in specification.items()
+                if field != "source_path"
+            }
+            for key, specification in KNOWLEDGE_RESOURCES.items()
+        },
     }
     _write_json(collection_path, collection)
     _write_json(manifest_dir / f"{TFBIND10_PHO4_CONFIG_NAME}.json", manifest)
@@ -593,6 +693,27 @@ def _digest(path: Path, algorithm: str) -> str:
         for chunk in iter(lambda: file.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _write_knowledge_resources(destination: Path) -> list[dict[str, Any]]:
+    source_root = resources.files("sci_modeling_bench").joinpath(
+        "resources", "knowledge"
+    )
+    artifacts: list[dict[str, Any]] = []
+    for key, specification in KNOWLEDGE_RESOURCES.items():
+        content = source_root.joinpath(specification["source_path"]).read_bytes()
+        output_path = destination / specification["path"]
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(content)
+        artifacts.append(
+            {
+                "key": key,
+                "path": specification["path"],
+                "size_bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
+    return artifacts
 
 
 def _write_json(path: Path, content: dict[str, Any]) -> None:

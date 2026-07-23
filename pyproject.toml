@@ -72,7 +72,11 @@ smb-build-drugmatrix = "sci_modeling_bench.suites.design_bench.drugmatrix.build:
 where = ["src"]
 
 [tool.setuptools.package-data]
-sci_modeling_bench = ["py.typed"]
+sci_modeling_bench = [
+  "py.typed",
+  "resources/knowledge/shared/*.md",
+  "resources/knowledge/design_bench/tfbind8/*.md",
+]
 
 [tool.pytest.ini_options]
 addopts = "-ra"

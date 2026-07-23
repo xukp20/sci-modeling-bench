@@ -11,9 +11,53 @@ from sci_modeling_bench.suites.design_bench import TFBind8Validator
 from sci_modeling_bench.suites.design_bench.tfbind8.build import (
     CANONICAL_ROW_COUNT,
     CONFIG_NAME,
+    KNOWLEDGE_RESOURCES,
     SPLIT_NAME,
+    _write_knowledge_resources,
+    _write_release_metadata,
     build_tfbind8_release,
 )
+
+
+def test_tfbind8_knowledge_resources_are_packaged(tmp_path: Path) -> None:
+    artifacts = _write_knowledge_resources(tmp_path)
+
+    assert {artifact["key"] for artifact in artifacts} == set(KNOWLEDGE_RESOURCES)
+    assert len(artifacts) == 6
+    for artifact in artifacts:
+        path = tmp_path / artifact["path"]
+        content = path.read_text(encoding="utf-8")
+        assert path.is_file()
+        assert artifact["size_bytes"] == path.stat().st_size
+        assert len(artifact["sha256"]) == 64
+        assert content.startswith("# ")
+        assert "\n## Summary\n" in content
+        assert "\n## Scope\n" in content
+        assert "\n## Core knowledge\n" in content
+        assert "\n## Conditions, limitations, and uncertainty\n" in content
+        assert "\n## References\n" in content
+
+
+def test_tfbind8_manifest_references_packaged_knowledge(tmp_path: Path) -> None:
+    _write_knowledge_resources(tmp_path)
+    _write_release_metadata(
+        tmp_path,
+        {
+            "artifact": {
+                "path": f"data/{CONFIG_NAME}/{SPLIT_NAME}.parquet",
+                "sha256": "test-artifact-sha256",
+            },
+            "legacy_parity": {"status": "not_run"},
+        },
+    )
+
+    manifest = DatasetManifest.from_json(
+        (tmp_path / "manifests" / f"{CONFIG_NAME}.json").read_text()
+    )
+    assert set(manifest.knowledge) == set(KNOWLEDGE_RESOURCES)
+    for key, resource in manifest.knowledge.items():
+        assert resource.media_type == "text/markdown"
+        assert (tmp_path / resource.path).is_file(), key
 
 
 @pytest.mark.integration
@@ -44,7 +88,10 @@ def test_build_tfbind8_from_pinned_source(tmp_path: Path) -> None:
     assert min(data["normalized_e_score"]) == 0.0
     assert max(data["normalized_e_score"]) == 1.0
     assert manifest.default_split == SPLIT_NAME
-    assert manifest.knowledge == {}
+    assert set(manifest.knowledge) == set(KNOWLEDGE_RESOURCES)
+    for key, resource in manifest.knowledge.items():
+        assert (tmp_path / resource.path).is_file(), key
+    assert len(provenance["knowledge"]) == 6
     assert provenance["canonicalization"]["duplicate_rows_removed"] == 256
     assert TFBind8Validator().validate_dataset(data).valid
     if legacy_data_dir is not None:
